@@ -1,6 +1,22 @@
 version: "3.8"
 
 services:
+  app:
+    build: .
+    container_name: finito_app
+    ports:
+      - "8000:8000"
+    environment:
+      MONGODB_URL: mongodb://admin:password@mongodb:27017/finito_app?authSource=admin
+      MONGODB_DB_NAME: finito_app
+      LOG_LEVEL: INFO
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - finito_network
+    command: uvicorn app.api:app --host 0.0.0.0 --port 8000
+
   mongodb:
     image: mongo:7.0
     container_name: finito_mongodb
