@@ -1,0 +1,31 @@
+name: Deploy to Railway
+
+on:
+    push:
+        branches: [master]
+    workflow_run:
+        workflows: ["Unit Tests"]
+        types: [completed]
+        branches: [master]
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push' || github.event.workflow_run.conclusion == 'success'
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Deploy to Railway
+              env:
+                  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+              run: |
+                  npm install -g @railway/cli
+                  railway link --projectId ${{ secrets.RAILWAY_PROJECT_ID }} --environmentId ${{ secrets.RAILWAY_ENVIRONMENT_ID }}
+                  railway up --detach
+              if: env.RAILWAY_TOKEN != ''
+
+            - name: Notify deployment
+              run: |
+                  echo "✅ Deployment to Railway completed!"
+                  echo "Check your Railway dashboard for status: https://railway.app"

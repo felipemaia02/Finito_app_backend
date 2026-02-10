@@ -32,6 +32,7 @@ class ExpenseController:
         Args:
             repository: Implementation of IExpenseRepository
         """
+        logger.info("Initializing ExpenseController")
         self.repository = repository
         self.create_expense_use_case = CreateExpenseUseCase(repository)
         self.get_all_expenses_use_case = GetAllExpensesUseCase(repository)
@@ -39,6 +40,7 @@ class ExpenseController:
         self.update_expense_use_case = UpdateExpenseUseCase(repository)
         self.delete_expense_use_case = DeleteExpenseUseCase(repository)
         self.get_amounts_and_types_use_case = GetAmountsAndTypesUseCase(repository)
+        logger.info("ExpenseController initialized successfully")
     
     async def create_expense(self, expense_data: ExpenseCreate) -> ExpenseResponse:
         """
@@ -55,7 +57,10 @@ class ExpenseController:
             ValueError: If expense data is invalid
             Exception: If database operation fails
         """
-        return await self.create_expense_use_case.execute(expense_data)
+        logger.info(f"Controller: Creating expense for group {expense_data.group_id}")
+        result = await self.create_expense_use_case.execute(expense_data)
+        logger.info(f"Controller: Expense created with ID {result.id}")
+        return result
     
     async def get_all_expenses(
         self, 
@@ -78,8 +83,11 @@ class ExpenseController:
         Raises:
             Exception: If database operation fails
         """
+        logger.info(f"Controller: Fetching all expenses for group {group_id} (skip={skip}, limit={limit})")
         input_data = GetAllExpensesInput(group_id=group_id, skip=skip, limit=limit)
-        return await self.get_all_expenses_use_case.execute(input_data)
+        result = await self.get_all_expenses_use_case.execute(input_data)
+        logger.info(f"Controller: Retrieved {len(result)} expenses for group {group_id}")
+        return result
     
     async def get_expense_by_id(self, expense_id: str) -> Optional[ExpenseResponse]:
         """
@@ -95,7 +103,13 @@ class ExpenseController:
         Raises:
             Exception: If database operation fails
         """
-        return await self.get_expense_by_id_use_case.execute(expense_id)
+        logger.info(f"Controller: Fetching expense with ID {expense_id}")
+        result = await self.get_expense_by_id_use_case.execute(expense_id)
+        if result:
+            logger.info(f"Controller: Expense found with ID {expense_id}")
+        else:
+            logger.warning(f"Controller: Expense not found with ID {expense_id}")
+        return result
     
     async def update_expense(self, expense_id: str, expense_data: ExpenseUpdate) -> Optional[ExpenseResponse]:
         """
@@ -112,8 +126,14 @@ class ExpenseController:
         Raises:
             Exception: If database operation fails
         """
+        logger.info(f"Controller: Updating expense with ID {expense_id}")
         input_data = UpdateExpenseInput(expense_id=expense_id, expense_data=expense_data)
-        return await self.update_expense_use_case.execute(input_data)
+        result = await self.update_expense_use_case.execute(input_data)
+        if result:
+            logger.info(f"Controller: Expense updated successfully with ID {expense_id}")
+        else:
+            logger.warning(f"Controller: Expense not found for update with ID {expense_id}")
+        return result
     
     async def delete_expense(self, expense_id: str) -> bool:
         """
@@ -129,7 +149,13 @@ class ExpenseController:
         Raises:
             Exception: If database operation fails
         """
-        return await self.delete_expense_use_case.execute(expense_id)
+        logger.info(f"Controller: Deleting expense with ID {expense_id}")
+        result = await self.delete_expense_use_case.execute(expense_id)
+        if result:
+            logger.info(f"Controller: Expense deleted successfully with ID {expense_id}")
+        else:
+            logger.warning(f"Controller: Expense not found for deletion with ID {expense_id}")
+        return result
     
     async def get_amounts_and_types(self, group_id: str) -> List[Dict[str, any]]:
         """
@@ -145,5 +171,8 @@ class ExpenseController:
         Raises:
             Exception: If database operation fails
         """
-        return await self.get_amounts_and_types_use_case.execute(group_id)
+        logger.info(f"Controller: Fetching amounts and types for group {group_id}")
+        result = await self.get_amounts_and_types_use_case.execute(group_id)
+        logger.info(f"Controller: Retrieved amounts and types for {len(result)} expenses in group {group_id}")
+        return result
 
