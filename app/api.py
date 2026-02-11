@@ -37,7 +37,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(expense_router)
 
 
