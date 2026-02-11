@@ -42,9 +42,13 @@ app.include_router(expense_router)
 
 
 @app.get("/")
-async def health_check():
-    """Root endpoint - Health check"""
+async def root():
+    """Root endpoint"""
     return {
         "message": f"Welcome to {settings.app_name}",
         "version": settings.app_version
     }
+@app.get("/health")
+def health_check():
+    """Health check endpoint"""
+    return {"status": "ok"}
