@@ -1,12 +1,14 @@
 """Expense routes with class-based views using fastapi-utils."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Security, HTTPException, status
 from typing import List
 
 from fastapi_utils.cbv import cbv
 
 from app.controllers.expense_controller import ExpenseController
-from app.infrastructure.dependencies import ExpenseDependencies
+from app.infrastructure.dependencies.expense_dependencies import ExpenseDependencies
+from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_token
+from app.infrastructure.dependencies.auth_dependencies import verify_api_key
 from app.models.expense_schema import ExpenseCreate, ExpenseUpdate, ExpenseResponse
 from app.infrastructure.logger import get_logger
 
@@ -21,6 +23,8 @@ class ExpenseViews:
     """Class-based views for expense operations using fastapi-utils."""
 
     controller: ExpenseController = Depends(ExpenseDependencies.get_controller)
+    current_user: str = Security(verify_oauth2_token)
+    api_key: str = Security(verify_api_key)
 
     @router.post(
         "/expenses",

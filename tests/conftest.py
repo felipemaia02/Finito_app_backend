@@ -142,8 +142,8 @@ def mock_database(mocker):
 def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     """Override app dependencies with mocks for testing."""
     from app.api import app
-    from app.infrastructure.user_dependencies import UserDependencies
-    from app.infrastructure.dependencies import ExpenseDependencies
+    from app.infrastructure.dependencies.user_dependencies import UserDependencies
+    from app.infrastructure.dependencies.expense_dependencies import ExpenseDependencies
     
     # Configure default mock behavior
     mock_user_repository.get_by_email.return_value = None
@@ -169,3 +169,39 @@ def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     # Restore original overrides
     app.dependency_overrides = original_overrides
 
+
+@pytest.fixture
+def authenticated_client(mock_app_dependencies):
+    """Provide test client with authentication header."""
+    from fastapi.testclient import TestClient
+    from app.infrastructure.settings import get_settings
+    
+    client = TestClient(mock_app_dependencies)
+    # Add default API key header
+    client.headers.update({"X-API-Key": get_settings().api_key})
+    return client
+
+
+@pytest.fixture
+def valid_oauth2_token():
+    """Provide a valid OAuth2 token for testing."""
+    from app.services.oauth2_service import OAuth2Service
+    
+    oauth2_service = OAuth2Service()
+    token, _, _ = oauth2_service.create_token_pair(email="test@example.com")
+    return token
+
+
+@pytest.fixture
+def authenticated_client_with_token(mock_app_dependencies, valid_oauth2_token):
+    """Provide test client with both API key and OAuth2 token."""
+    from fastapi.testclient import TestClient
+    from app.infrastructure.settings import get_settings
+    
+    client = TestClient(mock_app_dependencies)
+    # Add both API key and OAuth2 token headers
+    client.headers.update({
+        "X-API-Key": get_settings().api_key,
+        "Authorization": f"Bearer {valid_oauth2_token}"
+    })
+    return client
