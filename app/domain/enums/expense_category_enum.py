@@ -32,7 +32,7 @@ class ExpenseCategory(str, Enum):
     GAS = "gas"
     CAR = "car"
     OTHER = "other"
-    
+
     def __str__(self) -> str:
         """Return the string value of the enum."""
         return self.value

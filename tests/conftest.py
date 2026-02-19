@@ -2,14 +2,17 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from bson import ObjectId
 
 from app.domain.entities.expense_entity import Expense
+from app.domain.entities.user_entity import User
 from app.domain.enums.expense_category_enum import ExpenseCategory
 from app.domain.enums.expense_type_enum import ExpenseType
 from app.models.expense_schema import ExpenseCreate, ExpenseUpdate, ExpenseResponse
+from app.models.user_schema import UserCreate, UserUpdate, UserResponse
 from app.domain.interfaces.expense_repository_interface import IExpenseRepository
+from app.domain.interfaces.user_repository_interface import IUserRepository
 
 
 @pytest.fixture
@@ -67,9 +70,63 @@ def sample_expense_update() -> ExpenseUpdate:
 
 
 @pytest.fixture
-def mock_repository() -> AsyncMock:
+def mock_expense_repository() -> AsyncMock:
     """Provide a mocked expense repository for testing."""
     mock = AsyncMock(spec=IExpenseRepository)
+    return mock
+
+
+@pytest.fixture
+def sample_user_data() -> dict:
+    """Provide sample user data for testing."""
+    return {
+        "id": str(ObjectId()),
+        "nome": "João Silva",
+        "email": "joao@example.com",
+        "senha": "$2b$12$abcdefghijklmnopqrstuvwxyz1234567890",  # hashed password
+        "data_nascimento": date(1990, 5, 15),
+        "is_active": True,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+
+
+@pytest.fixture
+def sample_user_entity(sample_user_data) -> User:
+    """Provide sample user entity for testing."""
+    return User(**sample_user_data)
+
+
+@pytest.fixture
+def sample_user_response(sample_user_data) -> UserResponse:
+    """Provide sample user response model for testing."""
+    return UserResponse(**sample_user_data)
+
+
+@pytest.fixture
+def sample_user_create() -> UserCreate:
+    """Provide sample user creation data for testing."""
+    return UserCreate(
+        nome="Maria Silva",
+        email="maria@example.com",
+        senha="password123!@#",
+        data_nascimento=date(1992, 3, 20),
+    )
+
+
+@pytest.fixture
+def sample_user_update() -> UserUpdate:
+    """Provide sample user update data for testing."""
+    return UserUpdate(
+        nome="João Silva Santos",
+        email="joao.silva@example.com",
+    )
+
+
+@pytest.fixture
+def mock_user_repository() -> AsyncMock:
+    """Provide a mocked user repository for testing."""
+    mock = AsyncMock(spec=IUserRepository)
     return mock
 
 
@@ -79,3 +136,36 @@ def mock_database(mocker):
     mock_db = MagicMock()
     mocker.patch("app.infrastructure.database.Database.get_db", return_value=mock_db)
     return mock_db
+
+
+@pytest.fixture
+def mock_app_dependencies(mock_user_repository, mock_expense_repository):
+    """Override app dependencies with mocks for testing."""
+    from app.api import app
+    from app.infrastructure.user_dependencies import UserDependencies
+    from app.infrastructure.dependencies import ExpenseDependencies
+    
+    # Configure default mock behavior
+    mock_user_repository.get_by_email.return_value = None
+    mock_user_repository.email_exists.return_value = False
+    mock_user_repository.get_by_id.return_value = None
+    mock_user_repository.get_all.return_value = []
+    mock_user_repository.delete.return_value = False
+    mock_user_repository.update.return_value = None
+    
+    mock_expense_repository.get_by_id.return_value = None
+    mock_expense_repository.get_all.return_value = []
+    mock_expense_repository.delete.return_value = False
+    
+    # Store original overrides
+    original_overrides = app.dependency_overrides.copy()
+    
+    # Override dependencies
+    app.dependency_overrides[UserDependencies.get_repository] = lambda: mock_user_repository
+    app.dependency_overrides[ExpenseDependencies.get_repository] = lambda: mock_expense_repository
+    
+    yield app
+    
+    # Restore original overrides
+    app.dependency_overrides = original_overrides
+
