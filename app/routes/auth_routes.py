@@ -7,7 +7,7 @@ from app.controllers.auth_controller import AuthController
 from app.infrastructure.dependencies.auth_controller_dependencies import AuthDependencies
 from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_token
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
-from app.models.auth_schema import LoginRequest, TokenResponse, RefreshTokenRequest, TokenValidationResponse
+from app.models.auth_schema import LoginRequest, TokenResponse, RefreshTokenRequest, TokenValidationResponse, TokenData
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -97,7 +97,7 @@ class AuthViews:
     )
     async def validate_token(
         self,
-        current_user: str = Security(verify_oauth2_token)
+        current_user: TokenData = Security(verify_oauth2_token)
     ) -> TokenValidationResponse:
         """
         Validate the access token.
@@ -109,7 +109,7 @@ class AuthViews:
             TokenValidationResponse indicating token is valid
         """
         try:
-            logger.info(f"Token validated for user: {current_user}")
+            logger.info(f"Token validated for user: {current_user.sub}")
             return TokenValidationResponse(
                 valid=True,
                 email=current_user.sub,

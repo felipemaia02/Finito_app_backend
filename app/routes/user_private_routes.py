@@ -10,6 +10,7 @@ from app.infrastructure.dependencies.user_dependencies import UserDependencies
 from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_token
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
 from app.models.user_schema import UserUpdate, UserResponse
+from app.models.auth_schema import TokenData
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -23,11 +24,11 @@ class UserPrivateViews:
     """Protected user endpoints (OAuth2 token required)."""
 
     controller: UserController = Depends(UserDependencies.get_controller)
-    current_user: str = Security(verify_oauth2_token)
+    current_user: TokenData = Security(verify_oauth2_token)
     api_key: str = Security(verify_api_key)
 
     @router.get(
-        "/get_all",
+        "/",
         response_model=List[UserResponse],
         status_code=status.HTTP_200_OK,
     )

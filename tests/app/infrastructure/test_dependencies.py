@@ -16,12 +16,9 @@ class TestExpenseDependenciesGetRepository:
 
     def test_get_repository_returns_repository(self):
         """Test get_repository returns a repository"""
-        with patch('app.infrastructure.dependencies.MongoExpenseRepository') as mock_mongo:
-            mock_repo = MagicMock()
-            mock_mongo.return_value = mock_repo
-            
-            result = ExpenseDependencies.get_repository()
-            assert result is not None
+        result = ExpenseDependencies.get_repository()
+        assert result is not None
+        assert isinstance(result, IExpenseRepository)
 
     def test_get_repository_method_exists(self):
         """Test get_repository method exists on class"""

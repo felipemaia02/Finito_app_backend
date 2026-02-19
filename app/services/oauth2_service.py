@@ -3,15 +3,13 @@
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 import jwt
-from passlib.context import CryptContext
+import bcrypt
 
 from app.infrastructure.settings import get_settings
 from app.infrastructure.logger import get_logger
 from app.models.auth_schema import TokenData
 
 logger = get_logger(__name__)
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 class OAuth2Service:
@@ -32,7 +30,13 @@ class OAuth2Service:
         Returns:
             Hashed password
         """
-        return pwd_context.hash(password)
+        # Ensure password is a string and encode to bytes (bcrypt requirement)
+        if isinstance(password, str):
+            password = password.encode('utf-8')
+        
+        # Hash with bcrypt (rounds=12 is default)
+        hashed = bcrypt.hashpw(password, bcrypt.gensalt(rounds=12))
+        return hashed.decode('utf-8')
     
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """
@@ -45,7 +49,17 @@ class OAuth2Service:
         Returns:
             True if password matches, False otherwise
         """
-        return pwd_context.verify(plain_password, hashed_password)
+        try:
+            # Ensure inputs are bytes (bcrypt requirement)
+            if isinstance(plain_password, str):
+                plain_password = plain_password.encode('utf-8')
+            if isinstance(hashed_password, str):
+                hashed_password = hashed_password.encode('utf-8')
+            
+            return bcrypt.checkpw(plain_password, hashed_password)
+        except Exception as e:
+            logger.error(f"Error verifying password: {e}")
+            return False
     
     def create_access_token(self, data: dict, expires_delta: Optional[timedelta] = None) -> str:
         """

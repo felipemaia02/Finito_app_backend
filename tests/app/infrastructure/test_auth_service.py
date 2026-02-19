@@ -1,7 +1,7 @@
 """Tests for authentication service."""
 
 import pytest
-from app.infrastructure.services.auth_service import APIKeyAuthService
+from app.services.auth_service import APIKeyAuthService
 from app.infrastructure.settings import get_settings
 
 
