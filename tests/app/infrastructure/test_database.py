@@ -1,7 +1,7 @@
 """Tests for infrastructure/database.py"""
 
 import pytest
-from app.infrastructure.database import Database
+from app.infrastructure.database.database import Database
 
 
 class TestDatabaseInitialization:

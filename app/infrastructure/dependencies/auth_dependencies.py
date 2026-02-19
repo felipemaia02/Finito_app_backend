@@ -1,7 +1,10 @@
 """Authentication dependencies for FastAPI."""
 
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, status, Depends
 from app.services.auth_service import APIKeyAuthService
+from app.infrastructure.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class AuthDependencies:
@@ -45,5 +48,4 @@ class AuthDependencies:
         return x_api_key
 
 
-# Legacy function-based dependency for backward compatibility
 verify_api_key = AuthDependencies.verify_api_key

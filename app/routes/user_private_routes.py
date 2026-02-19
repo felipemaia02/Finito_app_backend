@@ -1,4 +1,4 @@
-"""User routes with class-based views using fastapi-utils."""
+"""Protected user routes (OAuth2 token required)."""
 
 from fastapi import APIRouter, Depends, Security, HTTPException, status
 from typing import List
@@ -6,9 +6,10 @@ from typing import List
 from fastapi_utils.cbv import cbv
 
 from app.controllers.user_controller import UserController
-from app.infrastructure.user_dependencies import UserDependencies
-from app.infrastructure.auth_dependencies import verify_api_key
-from app.models.user_schema import UserCreate, UserUpdate, UserResponse
+from app.infrastructure.dependencies.user_dependencies import UserDependencies
+from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_token
+from app.infrastructure.dependencies.auth_dependencies import verify_api_key
+from app.models.user_schema import UserUpdate, UserResponse
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -18,44 +19,12 @@ router = APIRouter(tags=["users"], prefix="/users")
 
 
 @cbv(router)
-class UserViews:
-    """Class-based views for user operations using fastapi-utils."""
+class UserPrivateViews:
+    """Protected user endpoints (OAuth2 token required)."""
 
     controller: UserController = Depends(UserDependencies.get_controller)
+    current_user: str = Security(verify_oauth2_token)
     api_key: str = Security(verify_api_key)
-
-    @router.post(
-        "/register",
-        response_model=UserResponse,
-        status_code=status.HTTP_201_CREATED,
-    )
-    async def register_user(self, user_data: UserCreate) -> UserResponse:
-        """
-        Register a new user in the system.
-        
-        Args:
-            user_data: User registration data including name, email, password, and birth date
-            
-        Returns:
-            Created user response with ID
-            
-        Raises:
-            HTTPException: If email already exists or registration fails
-        """
-        try:
-            return await self.controller.register_user(user_data)
-        except ValueError as ve:
-            logger.error(f"Validation error registering user: {ve}")
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=str(ve)
-            )
-        except Exception as e:
-            logger.error(f"Error registering user: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error registering user: {str(e)}"
-            )
 
     @router.get(
         "/get_all",

@@ -4,7 +4,7 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 from fastapi_utils.cbv import cbv
 from app.infrastructure.logger import get_logger
-from app.infrastructure.database import Database
+from app.infrastructure.database.database import Database
 from app.infrastructure.settings import get_settings
 
 logger = get_logger(__name__)

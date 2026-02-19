@@ -142,8 +142,8 @@ def mock_database(mocker):
 def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     """Override app dependencies with mocks for testing."""
     from app.api import app
-    from app.infrastructure.user_dependencies import UserDependencies
-    from app.infrastructure.dependencies import ExpenseDependencies
+    from app.infrastructure.dependencies.user_dependencies import UserDependencies
+    from app.infrastructure.dependencies.expense_dependencies import ExpenseDependencies
     
     # Configure default mock behavior
     mock_user_repository.get_by_email.return_value = None

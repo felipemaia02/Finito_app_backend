@@ -6,10 +6,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.infrastructure.settings import get_settings
-from app.infrastructure.database import Database
+from app.infrastructure.database.database import Database
 from app.infrastructure.logger import get_logger
 from app.routes.expense_routes import router as expense_router
-from app.routes.user_routes import router as user_router
+from app.routes.user_private_routes import router as user_private_router
+from app.routes.user_public_routes import router as user_public_router
+from app.routes.auth_routes import router as auth_router
 from app.routes.health_routes import router as health_router
 
 settings = get_settings()
@@ -50,7 +52,9 @@ app.add_middleware(
 )
 
 app.include_router(expense_router)
-app.include_router(user_router)
+app.include_router(user_public_router)
+app.include_router(user_private_router)
+app.include_router(auth_router)
 app.include_router(health_router)
 
 

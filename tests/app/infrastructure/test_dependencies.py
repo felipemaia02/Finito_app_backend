@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from app.infrastructure.dependencies import ExpenseDependencies
+from app.infrastructure.dependencies.expense_dependencies import ExpenseDependencies
 from app.domain.interfaces.expense_repository_interface import IExpenseRepository
 from app.controllers.expense_controller import ExpenseController
 
