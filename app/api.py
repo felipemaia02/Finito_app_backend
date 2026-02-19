@@ -8,6 +8,7 @@ from app.infrastructure.settings import get_settings
 from app.infrastructure.database import Database
 from app.infrastructure.logger import get_logger
 from app.routes.expense_routes import router as expense_router
+from app.routes.user_routes import router as user_router
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -44,6 +45,7 @@ app.add_middleware(
 )
 
 app.include_router(expense_router)
+app.include_router(user_router)
 
 
 @app.get("/")
