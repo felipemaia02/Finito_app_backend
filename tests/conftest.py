@@ -169,3 +169,14 @@ def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     # Restore original overrides
     app.dependency_overrides = original_overrides
 
+
+@pytest.fixture
+def authenticated_client(mock_app_dependencies):
+    """Provide test client with authentication header."""
+    from fastapi.testclient import TestClient
+    from app.infrastructure.settings import get_settings
+    
+    client = TestClient(mock_app_dependencies)
+    # Add default API key header
+    client.headers.update({"X-API-Key": get_settings().api_key})
+    return client

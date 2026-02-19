@@ -1,12 +1,13 @@
 """User routes with class-based views using fastapi-utils."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Security, HTTPException, status
 from typing import List
 
 from fastapi_utils.cbv import cbv
 
 from app.controllers.user_controller import UserController
 from app.infrastructure.user_dependencies import UserDependencies
+from app.infrastructure.auth_dependencies import verify_api_key
 from app.models.user_schema import UserCreate, UserUpdate, UserResponse
 from app.infrastructure.logger import get_logger
 
@@ -21,6 +22,7 @@ class UserViews:
     """Class-based views for user operations using fastapi-utils."""
 
     controller: UserController = Depends(UserDependencies.get_controller)
+    api_key: str = Security(verify_api_key)
 
     @router.post(
         "/register",
@@ -56,7 +58,7 @@ class UserViews:
             )
 
     @router.get(
-        "/",
+        "/get_all",
         response_model=List[UserResponse],
         status_code=status.HTTP_200_OK,
     )

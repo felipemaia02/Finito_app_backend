@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # API
     api_v1_str: str = "/api/v1"
 
+    # Authentication
+    api_key: str = "your-secret-api-key-change-in-env"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
