@@ -73,7 +73,7 @@ class TestMongoUserRepository:
     async def test_get_by_email_success(self, sample_user_entity, mock_user_repository):
         """Test getting user by email."""
         # Arrange
-        email = "joao@example.com"
+        email = "john@example.com"
         mock_user_repository.get_by_email.return_value = sample_user_entity
         
         # Act
@@ -156,14 +156,14 @@ class TestMongoUserRepository:
         # Arrange
         user_id = str(ObjectId())
         updated_user = sample_user_entity
-        updated_user.nome = "Updated Name"
+        updated_user.name = "Updated Name"
         mock_user_repository.update.return_value = updated_user
         
         # Act
         result = await mock_user_repository.update(user_id, updated_user)
         
         # Assert
-        assert result.nome == "Updated Name"
+        assert result.name == "Updated Name"
         mock_user_repository.update.assert_called_once_with(user_id, updated_user)
     
     @pytest.mark.asyncio

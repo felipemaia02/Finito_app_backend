@@ -22,7 +22,7 @@ class TestCreateUserUseCase:
         result = await use_case.execute(sample_user_create)
         
         # Assert
-        assert result.nome == sample_user_response.nome
+        assert result.name == sample_user_response.name
         assert result.email == sample_user_response.email
         mock_user_repository.get_by_email.assert_called_once()
         mock_user_repository.create.assert_called_once()
@@ -46,10 +46,10 @@ class TestCreateUserUseCase:
         """Test that email is normalized to lowercase."""
         # Arrange
         user_create = UserCreate(
-            nome="Test User",
+            name="Test User",
             email="TEST@EXAMPLE.COM",
-            senha="password123!",
-            data_nascimento=date(1990, 1, 1),
+            password="password123!",
+            date_birth=date(1990, 1, 1),
         )
         mock_user_repository.get_by_email.return_value = None
         mock_user_repository.create.return_value = sample_user_response
@@ -67,10 +67,10 @@ class TestCreateUserUseCase:
         """Test that password is hashed, not stored as plain text."""
         # Arrange
         user_create = UserCreate(
-            nome="Test User",
+            name="Test User",
             email="test@example.com",
-            senha="plain_password",
-            data_nascimento=date(1990, 1, 1),
+            password="plain_password",
+            date_birth=date(1990, 1, 1),
         )
         mock_user_repository.get_by_email.return_value = None
         mock_user_repository.create.return_value = sample_user_response
@@ -82,8 +82,8 @@ class TestCreateUserUseCase:
         # Assert
         call_args = mock_user_repository.create.call_args[0][0]
         # Password should be hashed (starts with $2b$ for bcrypt)
-        assert call_args.senha.startswith("$2b$")
-        assert call_args.senha != "plain_password"
+        assert call_args.password.startswith("$2b$")
+        assert call_args.password != "plain_password"
     
     @pytest.mark.asyncio
     async def test_create_user_repository_error(self, sample_user_create, mock_user_repository):

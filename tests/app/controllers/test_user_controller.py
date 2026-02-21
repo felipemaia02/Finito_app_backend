@@ -55,7 +55,7 @@ class TestUserController:
     async def test_get_user_by_email_success(self, sample_user_response, mock_user_repository):
         """Test getting user by email."""
         # Arrange
-        email = "joao@example.com"
+        email = "john@example.com"
         mock_user_repository.get_by_email.return_value = sample_user_response
         controller = UserController(mock_user_repository)
         
@@ -86,7 +86,7 @@ class TestUserController:
         """Test user update."""
         # Arrange
         user_id = str(ObjectId())
-        update_data = UserUpdate(nome="Updated Name")
+        update_data = UserUpdate(name="Updated Name")
         
         mock_user_repository.get_by_id.return_value = sample_user_entity
         mock_user_repository.email_exists.return_value = False

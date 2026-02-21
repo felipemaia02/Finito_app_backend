@@ -81,10 +81,10 @@ def sample_user_data() -> dict:
     """Provide sample user data for testing."""
     return {
         "id": str(ObjectId()),
-        "nome": "João Silva",
-        "email": "joao@example.com",
-        "senha": "$2b$12$abcdefghijklmnopqrstuvwxyz1234567890",  # hashed password
-        "data_nascimento": date(1990, 5, 15),
+        "name": "John Silva",
+        "email": "john@example.com",
+        "password": "$2b$12$abcdefghijklmnopqrstuvwxyz1234567890",  # hashed password
+        "date_birth": date(1990, 5, 15),
         "is_active": True,
         "created_at": datetime.now(timezone.utc),
         "updated_at": datetime.now(timezone.utc),
@@ -107,10 +107,10 @@ def sample_user_response(sample_user_data) -> UserResponse:
 def sample_user_create() -> UserCreate:
     """Provide sample user creation data for testing."""
     return UserCreate(
-        nome="Maria Silva",
-        email="maria@example.com",
-        senha="password123!@#",
-        data_nascimento=date(1992, 3, 20),
+        name="Mary Silva",
+        email="mary@example.com",
+        password="password123!@#",
+        date_birth=date(1992, 3, 20),
     )
 
 
@@ -118,8 +118,8 @@ def sample_user_create() -> UserCreate:
 def sample_user_update() -> UserUpdate:
     """Provide sample user update data for testing."""
     return UserUpdate(
-        nome="João Silva Santos",
-        email="joao.silva@example.com",
+        name="John Silva Santos",
+        email="john.silva@example.com",
     )
 
 

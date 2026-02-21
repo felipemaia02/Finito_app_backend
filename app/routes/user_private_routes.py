@@ -136,7 +136,7 @@ class UserPrivateViews:
         
         Args:
             user_id: User ID to update
-            user_data: Fields to update (nome, email, data_nascimento)
+            user_data: Fields to update (name, email, date_birth)
             
         Returns:
             Updated user response

@@ -5,6 +5,9 @@ from app.domain.interfaces.user_repository_interface import IUserRepository
 from app.services.oauth2_service import OAuth2Service
 from app.infrastructure.logger import get_logger
 from datetime import datetime
+from app.use_cases.user.password_utils import verify_password
+
+from fastapi import HTTPException, status
 
 logger = get_logger(__name__)
 
@@ -38,17 +41,14 @@ class LoginUseCase:
         try:
             logger.info(f"Login attempt for email: {login_data.email}")
             
-            # Get user by email
             user = await self.repository.get_by_email(login_data.email)
             
-            if not user:
-                logger.warning(f"Login failed: User not found with email {login_data.email}")
-                raise ValueError("Invalid email or password")
+            if not user or not verify_password(login_data.password, user.password):
+                logger.info(f"Login failed: User not found or incorrect password for email {login_data.email}")
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")   
             
-            # Create token pair
             access_token, refresh_token, expires_at = self.oauth_service.create_token_pair(user.email)
             
-            # Calculate expires_in in seconds
             expires_in = int((expires_at - datetime.utcnow()).total_seconds())
             
             logger.info(f"Login successful for email: {login_data.email}")

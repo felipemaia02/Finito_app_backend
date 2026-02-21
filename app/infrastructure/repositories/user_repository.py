@@ -42,9 +42,9 @@ class MongoUserRepository(IUserRepository):
         doc["_id"] = ObjectId(entity.id) if entity.id else ObjectId()
         
         # Convert date to datetime for MongoDB compatibility
-        if "data_nascimento" in doc and isinstance(doc["data_nascimento"], date):
-            if not isinstance(doc["data_nascimento"], datetime):
-                doc["data_nascimento"] = datetime.combine(doc["data_nascimento"], datetime.min.time())
+        if "date_birth" in doc and isinstance(doc["date_birth"], date):
+            if not isinstance(doc["date_birth"], datetime):
+                doc["date_birth"] = datetime.combine(doc["date_birth"], datetime.min.time())
         
         return doc
     
@@ -62,8 +62,8 @@ class MongoUserRepository(IUserRepository):
             doc["id"] = str(doc.pop("_id"))
             
             # Convert datetime back to date if needed
-            if "data_nascimento" in doc and isinstance(doc["data_nascimento"], datetime):
-                doc["data_nascimento"] = doc["data_nascimento"].date()
+            if "date_birth" in doc and isinstance(doc["date_birth"], datetime):
+                doc["date_birth"] = doc["date_birth"].date()
             
             return User(**doc)
         return None
@@ -210,10 +210,9 @@ class MongoUserRepository(IUserRepository):
             update_data = entity.model_dump(exclude={"id", "created_at"})
             update_data["updated_at"] = entity.updated_at
             
-            # Convert date to datetime for MongoDB compatibility
-            if "data_nascimento" in update_data and isinstance(update_data["data_nascimento"], date):
-                if not isinstance(update_data["data_nascimento"], datetime):
-                    update_data["data_nascimento"] = datetime.combine(update_data["data_nascimento"], datetime.min.time())
+            if "date_birth" in update_data and isinstance(update_data["date_birth"], date):
+                if not isinstance(update_data["date_birth"], datetime):
+                    update_data["date_birth"] = datetime.combine(update_data["date_birth"], datetime.min.time())
             
             result = await collection.update_one(
                 {"_id": ObjectId(id)},

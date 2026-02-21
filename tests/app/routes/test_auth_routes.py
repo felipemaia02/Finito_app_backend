@@ -20,7 +20,7 @@ class TestAuthRoutes:
         # Arrange
         login_data = {
             "email": "test@example.com",
-            "senha": "password123"
+            "password": "password123"
         }
         
         # Act
@@ -34,7 +34,7 @@ class TestAuthRoutes:
     def test_login_missing_fields(self, client):
         """Test login with missing required fields."""
         # Arrange
-        login_data = {"email": "test@example.com"}  # Missing senha
+        login_data = {"email": "test@example.com"}  # Missing password
         
         # Act
         response = client.post("/auth/login", json=login_data)

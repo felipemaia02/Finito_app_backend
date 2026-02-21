@@ -29,10 +29,10 @@ class TestUserRoutes:
         """Test successful user registration endpoint."""
         # Arrange
         user_data = {
-            "nome": "Test User",
+            "name": "Test User",
             "email": "test@example.com",
-            "senha": "password123!@#",
-            "data_nascimento": "1990-05-15",
+            "password": "password123!@#",
+            "date_birth": "1990-05-15",
         }
         
         # Mock the dependencies
@@ -51,10 +51,10 @@ class TestUserRoutes:
         """Test registration with invalid email."""
         # Arrange
         user_data = {
-            "nome": "Test User",
+            "name": "Test User",
             "email": "invalid-email",
-            "senha": "password123!",
-            "data_nascimento": "1990-05-15",
+            "password": "password123!",
+            "date_birth": "1990-05-15",
         }
         
         # Act
@@ -67,10 +67,10 @@ class TestUserRoutes:
         """Test registration with short password."""
         # Arrange
         user_data = {
-            "nome": "Test User",
+            "name": "Test User",
             "email": "test@example.com",
-            "senha": "pass",  # Too short
-            "data_nascimento": "1990-05-15",
+            "password": "pass",  # Too short
+            "date_birth": "1990-05-15",
         }
         
         # Act
@@ -83,10 +83,10 @@ class TestUserRoutes:
         """Test registration with invalid birth date."""
         # Arrange
         user_data = {
-            "nome": "Test User",
+            "name": "Test User",
             "email": "test@example.com",
-            "senha": "password123!",
-            "data_nascimento": "2020-05-15",  # Too young
+            "password": "password123!",
+            "date_birth": "2020-05-15",  # Too young
         }
         
         # Act
@@ -153,7 +153,7 @@ class TestUserRoutes:
         """Test updating non-existent user."""
         # Arrange
         invalid_id = "invalid_id_12345"
-        update_data = {"nome": "New Name"}
+        update_data = {"name": "New Name"}
         headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
         
         # Act

@@ -43,13 +43,13 @@ class CreateUserUseCase(IUseCase[UserCreate, UserResponse]):
                 logger.warning(f"User with email {user_data.email} already exists")
                 raise ValueError(f"Email {user_data.email} is already registered")
             
-            hashed_password = hash_password(user_data.senha)
+            hashed_password = hash_password(user_data.password)
             
             user = User(
-                nome=user_data.nome,
+                name=user_data.name,
                 email=user_data.email.lower(),
-                senha=hashed_password,
-                data_nascimento=user_data.data_nascimento,
+                password=hashed_password,
+                date_birth=user_data.date_birth,
                 is_active=True
             )
 

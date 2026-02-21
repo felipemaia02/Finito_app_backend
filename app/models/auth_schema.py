@@ -11,13 +11,13 @@ class LoginRequest(BaseModel):
     """Schema for login request."""
     
     email: EmailStr = Field(..., description="User's email address")
-    senha: str = Field(..., description="User's password")
+    password: str = Field(..., description="User's password")
     
     class Config:
         json_schema_extra = {
             "example": {
                 "email": "joao@example.com",
-                "senha": "senha123!@#"
+                "password": "password123!@#"
             }
         }
 

@@ -12,7 +12,7 @@ class TestGetUserByEmailUseCase:
     async def test_get_user_by_email_success(self, sample_user_entity, mock_user_repository):
         """Test successful retrieval of user by email."""
         # Arrange
-        email = "joao@example.com"
+        email = "john@example.com"
         mock_user_repository.get_by_email.return_value = sample_user_entity
         use_case = GetUserByEmailUseCase(mock_user_repository)
         input_data = GetUserByEmailInput(email=email)

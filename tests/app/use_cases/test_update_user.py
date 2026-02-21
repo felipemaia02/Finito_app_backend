@@ -16,11 +16,11 @@ class TestUpdateUserUseCase:
         """Test successful user update."""
         # Arrange
         user_id = str(ObjectId())
-        update_data = UserUpdate(nome="Updated Name")
+        update_data = UserUpdate(name="Updated Name")
         input_data = UpdateUserInput(user_id=user_id, user_data=update_data)
         
         updated_user = sample_user_entity
-        updated_user.nome = "Updated Name"
+        updated_user.name = "Updated Name"
         
         mock_user_repository.get_by_id.return_value = sample_user_entity
         mock_user_repository.email_exists.return_value = False
@@ -33,7 +33,7 @@ class TestUpdateUserUseCase:
         
         # Assert
         assert result is not None
-        assert result.nome == "Updated Name"
+        assert result.name == "Updated Name"
         mock_user_repository.get_by_id.assert_called_once_with(user_id)
         mock_user_repository.update.assert_called_once()
     
@@ -42,7 +42,7 @@ class TestUpdateUserUseCase:
         """Test update when user not found."""
         # Arrange
         user_id = str(ObjectId())
-        update_data = UserUpdate(nome="Updated Name")
+        update_data = UserUpdate(name="Updated Name")
         input_data = UpdateUserInput(user_id=user_id, user_data=update_data)
         
         mock_user_repository.get_by_id.return_value = None
@@ -105,7 +105,7 @@ class TestUpdateUserUseCase:
         """Test partial user update (only some fields)."""
         # Arrange
         user_id = str(ObjectId())
-        update_data = UserUpdate(nome="New Name")  # Only update name
+        update_data = UserUpdate(name="New Name")  # Only update name
         input_data = UpdateUserInput(user_id=user_id, user_data=update_data)
         
         original_email = sample_user_entity.email
@@ -120,5 +120,5 @@ class TestUpdateUserUseCase:
         
         # Assert
         call_args = mock_user_repository.update.call_args[0][1]
-        assert call_args.nome == "New Name"
+        assert call_args.name == "New Name"
         assert call_args.email == original_email  # Email should remain unchanged
