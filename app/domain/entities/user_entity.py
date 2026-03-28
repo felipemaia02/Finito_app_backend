@@ -10,7 +10,7 @@ from app.domain.entities.base_entity import BaseEntity
 class User(BaseEntity):
     """
     User entity representing a registered user in the system.
-    
+
     Attributes:
         id: Unique identifier (MongoDB ObjectId as string)
         name: User's full name
@@ -24,7 +24,9 @@ class User(BaseEntity):
 
     name: str = Field(..., min_length=1, max_length=200, description="User's full name")
     email: EmailStr = Field(..., description="User's email address (unique)")
-    password: str = Field(..., min_length=6, description="User's password (should be hashed)")
+    password: str = Field(
+        ..., min_length=6, description="User's password (should be hashed)"
+    )
     date_birth: date = Field(..., description="User's birth date")
     is_active: bool = Field(True, description="Whether the user account is active")
 
@@ -39,7 +41,7 @@ class User(BaseEntity):
                 "date_birth": "1990-05-15",
                 "is_active": True,
                 "created_at": "2026-02-19T12:00:00Z",
-                "updated_at": "2026-02-19T12:00:00Z"
+                "updated_at": "2026-02-19T12:00:00Z",
             }
         }
 
@@ -48,14 +50,14 @@ class User(BaseEntity):
     def validate_birth_date(cls, v):
         """Validate that birth date is in the past."""
         if isinstance(v, str):
-            v = datetime.fromisoformat(v.replace('Z', '+00:00')).date()
-        
+            v = datetime.fromisoformat(v.replace("Z", "+00:00")).date()
+
         today = datetime.now(timezone.utc).date()
         if v >= today:
             raise ValueError("Birth date must be in the past")
-        
+
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
         if age < 13:
             raise ValueError("User must be at least 13 years old")
-        
+
         return v

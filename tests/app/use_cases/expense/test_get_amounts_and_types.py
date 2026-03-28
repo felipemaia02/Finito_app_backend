@@ -19,7 +19,50 @@ class TestGetAmountsAndTypesUseCase:
         """Test use case has execute method"""
         mock_repo = AsyncMock(spec=IExpenseRepository)
         use_case = GetAmountsAndTypesUseCase(mock_repo)
-        assert hasattr(use_case, 'execute')
+        assert hasattr(use_case, "execute")
+
+    @pytest.mark.asyncio
+    async def test_execute_returns_data(self, mock_expense_repository):
+        # Arrange
+        expected = [
+            {"amount_cents": 5000, "type_expense": "credit_card"},
+            {"amount_cents": 2000, "type_expense": "cash"},
+        ]
+        mock_expense_repository.get_amounts_and_types.return_value = expected
+        use_case = GetAmountsAndTypesUseCase(mock_expense_repository)
+
+        # Act
+        result = await use_case.execute("group-123")
+
+        # Assert
+        assert result == expected
+        mock_expense_repository.get_amounts_and_types.assert_called_once_with(
+            "group-123"
+        )
+
+    @pytest.mark.asyncio
+    async def test_execute_empty(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.get_amounts_and_types.return_value = []
+        use_case = GetAmountsAndTypesUseCase(mock_expense_repository)
+
+        # Act
+        result = await use_case.execute("group-empty")
+
+        # Assert
+        assert result == []
+
+    @pytest.mark.asyncio
+    async def test_execute_propagates_exception(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.get_amounts_and_types.side_effect = Exception(
+            "DB error"
+        )
+        use_case = GetAmountsAndTypesUseCase(mock_expense_repository)
+
+        # Act & Assert
+        with pytest.raises(Exception, match="DB error"):
+            await use_case.execute("group-fail")
 
 
 class TestGetAmountsAndTypesStructure:

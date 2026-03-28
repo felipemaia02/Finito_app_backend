@@ -144,7 +144,7 @@ def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     from app.api import app
     from app.infrastructure.dependencies.user_dependencies import UserDependencies
     from app.infrastructure.dependencies.expense_dependencies import ExpenseDependencies
-    
+
     # Configure default mock behavior
     mock_user_repository.get_by_email.return_value = None
     mock_user_repository.email_exists.return_value = False
@@ -152,20 +152,24 @@ def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     mock_user_repository.get_all.return_value = []
     mock_user_repository.delete.return_value = False
     mock_user_repository.update.return_value = None
-    
+
     mock_expense_repository.get_by_id.return_value = None
     mock_expense_repository.get_all.return_value = []
     mock_expense_repository.delete.return_value = False
-    
+
     # Store original overrides
     original_overrides = app.dependency_overrides.copy()
-    
+
     # Override dependencies
-    app.dependency_overrides[UserDependencies.get_repository] = lambda: mock_user_repository
-    app.dependency_overrides[ExpenseDependencies.get_repository] = lambda: mock_expense_repository
-    
+    app.dependency_overrides[UserDependencies.get_repository] = (
+        lambda: mock_user_repository
+    )
+    app.dependency_overrides[ExpenseDependencies.get_repository] = (
+        lambda: mock_expense_repository
+    )
+
     yield app
-    
+
     # Restore original overrides
     app.dependency_overrides = original_overrides
 
@@ -175,7 +179,7 @@ def authenticated_client(mock_app_dependencies):
     """Provide test client with authentication header."""
     from fastapi.testclient import TestClient
     from app.infrastructure.settings import get_settings
-    
+
     client = TestClient(mock_app_dependencies)
     # Add default API key header
     client.headers.update({"X-API-Key": get_settings().api_key})
@@ -186,7 +190,7 @@ def authenticated_client(mock_app_dependencies):
 def valid_oauth2_token():
     """Provide a valid OAuth2 token for testing."""
     from app.services.oauth2_service import OAuth2Service
-    
+
     oauth2_service = OAuth2Service()
     token, _, _ = oauth2_service.create_token_pair(email="test@example.com")
     return token
@@ -197,11 +201,13 @@ def authenticated_client_with_token(mock_app_dependencies, valid_oauth2_token):
     """Provide test client with both API key and OAuth2 token."""
     from fastapi.testclient import TestClient
     from app.infrastructure.settings import get_settings
-    
+
     client = TestClient(mock_app_dependencies)
     # Add both API key and OAuth2 token headers
-    client.headers.update({
-        "X-API-Key": get_settings().api_key,
-        "Authorization": f"Bearer {valid_oauth2_token}"
-    })
+    client.headers.update(
+        {
+            "X-API-Key": get_settings().api_key,
+            "Authorization": f"Bearer {valid_oauth2_token}",
+        }
+    )
     return client

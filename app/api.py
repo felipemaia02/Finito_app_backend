@@ -1,6 +1,7 @@
 """
 FastAPI application factory
 """
+
 import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,7 @@ from app.routes.health_routes import router as health_router
 
 settings = get_settings()
 logger = get_logger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,14 +35,14 @@ async def lifespan(app: FastAPI):
         await Database.disconnect()
         logger.info("Application shutdown - Database disconnected successfully")
     except asyncio.exceptions.CancelledError:
-        logger.warning("Application lifespan cancelled")   
+        logger.warning("Application lifespan cancelled")
 
 
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
     debug=settings.debug,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -65,5 +67,5 @@ async def root():
     return {
         "message": f"Welcome to {settings.app_name}",
         "version": settings.app_version,
-        "status": "running"
+        "status": "running",
     }

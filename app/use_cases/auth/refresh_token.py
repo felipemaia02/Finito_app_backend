@@ -10,48 +10,52 @@ logger = get_logger(__name__)
 
 class RefreshTokenUseCase:
     """Use case for refreshing JWT tokens."""
-    
+
     def __init__(self):
         """Initialize the use case."""
         self.oauth_service = OAuth2Service()
-    
+
     async def execute(self, refresh_token: str) -> TokenResponse:
         """
         Refresh an expired access token.
-        
+
         Args:
             refresh_token: Valid refresh token
-            
+
         Returns:
             TokenResponse with new JWT access token
-            
+
         Raises:
             ValueError: If refresh token is invalid or expired
         """
         try:
             logger.info("Refresh token attempt")
-            
-            token_data = self.oauth_service.verify_token(refresh_token, token_type="refresh")
-            
+
+            token_data = self.oauth_service.verify_token(
+                refresh_token, token_type="refresh"
+            )
+
             if not token_data:
                 logger.warning("Refresh token validation failed")
                 raise ValueError("Invalid or expired refresh token")
-            
+
             # Create new token pair
-            access_token, new_refresh_token, expires_at = self.oauth_service.create_token_pair(token_data.sub)
-            
+            access_token, new_refresh_token, expires_at = (
+                self.oauth_service.create_token_pair(token_data.sub)
+            )
+
             # Calculate expires_in in seconds
             expires_in = int((expires_at - datetime.utcnow()).total_seconds())
-            
+
             logger.info(f"Token refreshed successfully for email: {token_data.sub}")
             return TokenResponse(
                 access_token=access_token,
                 refresh_token=new_refresh_token,
                 token_type="bearer",
                 expires_in=expires_in,
-                expires_at=expires_at
+                expires_at=expires_at,
             )
-            
+
         except ValueError as ve:
             logger.error(f"Validation error during refresh: {ve}")
             raise

@@ -10,7 +10,7 @@ class ExpenseCategory(str, Enum):
     Enum for expense categories.
     Each category represents a common expense type.
     """
-    
+
     TRANSPORTATION = "transportation"
     ENTERTAINMENT = "entertainment"
     UTILITIES = "utilities"

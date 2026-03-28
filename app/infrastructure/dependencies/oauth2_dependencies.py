@@ -18,24 +18,24 @@ class OAuth2Dependencies:
     async def verify_oauth2_token(token: str = Depends(oauth2_scheme)) -> str:
         """
         Dependency to verify OAuth2 JWT token.
-        
+
         Args:
             token: JWT token from Authorization header
-            
+
         Returns:
             The user email (subject) from the token
-            
+
         Raises:
             HTTPException: If token is invalid or expired
         """
         oauth_service = OAuth2Service()
         token_data = oauth_service.verify_token(token)
-        
+
         if token_data is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid or expired token",
-                headers={"WWW-Authenticate": "Bearer"}
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         return token_data

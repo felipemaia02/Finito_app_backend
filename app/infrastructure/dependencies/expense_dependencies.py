@@ -14,7 +14,7 @@ class ExpenseDependencies:
     def get_repository() -> IExpenseRepository:
         """
         Provides the expense repository instance.
-        
+
         Returns:
             IExpenseRepository: MongoDB implementation of expense repository
         """
@@ -26,10 +26,10 @@ class ExpenseDependencies:
     ) -> ExpenseController:
         """
         Provides the expense controller instance with injected repository.
-        
+
         Args:
             repository: Injected expense repository
-            
+
         Returns:
             ExpenseController: Controller instance with repository
         """

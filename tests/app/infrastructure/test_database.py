@@ -13,15 +13,15 @@ class TestDatabaseInitialization:
 
     def test_database_has_connect_method(self):
         """Test Database has connect method"""
-        assert hasattr(Database, 'connect')
+        assert hasattr(Database, "connect")
 
     def test_database_has_disconnect_method(self):
         """Test Database has disconnect method"""
-        assert hasattr(Database, 'disconnect')
+        assert hasattr(Database, "disconnect")
 
     def test_database_has_get_db_method(self):
         """Test Database has get_db method"""
-        assert hasattr(Database, 'get_db')
+        assert hasattr(Database, "get_db")
 
 
 class TestDatabaseAttributes:
@@ -29,11 +29,11 @@ class TestDatabaseAttributes:
 
     def test_database_has_client_attribute(self):
         """Test Database has _client attribute"""
-        assert hasattr(Database, '_client')
+        assert hasattr(Database, "_client")
 
     def test_database_has_db_attribute(self):
         """Test Database has _db attribute"""
-        assert hasattr(Database, '_db')
+        assert hasattr(Database, "_db")
 
 
 class TestDatabaseMethods:
@@ -43,4 +43,3 @@ class TestDatabaseMethods:
         """Test Database methods are callable"""
         assert callable(Database.connect)
         assert callable(Database.disconnect)
-

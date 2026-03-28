@@ -40,18 +40,18 @@ class TestBaseEntityFields:
     def test_base_entity_has_id_field(self):
         """Test BaseEntity has id field"""
         entity = BaseEntity(id="123")
-        assert hasattr(entity, 'id')
+        assert hasattr(entity, "id")
         assert entity.id == "123"
 
     def test_base_entity_has_created_at_field(self):
         """Test BaseEntity has created_at field"""
         entity = BaseEntity()
-        assert hasattr(entity, 'created_at')
+        assert hasattr(entity, "created_at")
 
     def test_base_entity_has_updated_at_field(self):
         """Test BaseEntity has updated_at field"""
         entity = BaseEntity()
-        assert hasattr(entity, 'updated_at')
+        assert hasattr(entity, "updated_at")
 
     def test_base_entity_field_types(self):
         """Test BaseEntity field types are correct"""
@@ -67,7 +67,7 @@ class TestBaseEntityMethods:
     def test_update_timestamp_method_exists(self):
         """Test update_timestamp method exists"""
         entity = BaseEntity()
-        assert hasattr(entity, 'update_timestamp')
+        assert hasattr(entity, "update_timestamp")
         assert callable(entity.update_timestamp)
 
     def test_update_timestamp_updates_updated_at(self):
@@ -110,9 +110,9 @@ class TestBaseEntitySerialization:
         """Test converting BaseEntity to dictionary"""
         entity = BaseEntity(id="test-id")
         entity_dict = entity.model_dump()
-        assert entity_dict['id'] == "test-id"
-        assert entity_dict['created_at'] is not None
-        assert entity_dict['updated_at'] is not None
+        assert entity_dict["id"] == "test-id"
+        assert entity_dict["created_at"] is not None
+        assert entity_dict["updated_at"] is not None
 
 
 class TestBaseEntityPydantic:
@@ -121,9 +121,9 @@ class TestBaseEntityPydantic:
     def test_base_entity_is_pydantic_model(self):
         """Test BaseEntity is a Pydantic BaseModel"""
         entity = BaseEntity()
-        assert hasattr(entity, 'model_validate')
-        assert hasattr(entity, 'model_dump')
-        assert hasattr(entity, 'model_dump_json')
+        assert hasattr(entity, "model_validate")
+        assert hasattr(entity, "model_dump")
+        assert hasattr(entity, "model_dump_json")
 
     def test_base_entity_field_validation(self):
         """Test BaseEntity field validation"""

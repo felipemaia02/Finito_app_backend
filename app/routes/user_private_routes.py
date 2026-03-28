@@ -32,17 +32,19 @@ class UserPrivateViews:
         response_model=List[UserResponse],
         status_code=status.HTTP_200_OK,
     )
-    async def get_all_users(self, skip: int = 0, limit: int = 100) -> List[UserResponse]:
+    async def get_all_users(
+        self, skip: int = 0, limit: int = 100
+    ) -> List[UserResponse]:
         """
         Get all active users with pagination.
-        
+
         Args:
             skip: Number of users to skip (default: 0)
             limit: Maximum number of users to return (default: 100)
-            
+
         Returns:
             List of user responses
-            
+
         Raises:
             HTTPException: If retrieval fails
         """
@@ -52,7 +54,7 @@ class UserPrivateViews:
             logger.error(f"Error getting all users: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error retrieving users: {str(e)}"
+                detail=f"Error retrieving users: {str(e)}",
             )
 
     @router.get(
@@ -63,13 +65,13 @@ class UserPrivateViews:
     async def get_user(self, user_id: str) -> UserResponse:
         """
         Get a user by their ID.
-        
+
         Args:
             user_id: User ID to retrieve
-            
+
         Returns:
             User response
-            
+
         Raises:
             HTTPException: If user not found or retrieval fails
         """
@@ -78,7 +80,7 @@ class UserPrivateViews:
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with ID {user_id} not found"
+                    detail=f"User with ID {user_id} not found",
                 )
             return user
         except HTTPException:
@@ -87,7 +89,7 @@ class UserPrivateViews:
             logger.error(f"Error getting user: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error retrieving user: {str(e)}"
+                detail=f"Error retrieving user: {str(e)}",
             )
 
     @router.get(
@@ -98,13 +100,13 @@ class UserPrivateViews:
     async def get_user_by_email(self, email: str) -> UserResponse:
         """
         Get a user by their email address.
-        
+
         Args:
             email: User email to search for
-            
+
         Returns:
             User response
-            
+
         Raises:
             HTTPException: If user not found or retrieval fails
         """
@@ -113,7 +115,7 @@ class UserPrivateViews:
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with email {email} not found"
+                    detail=f"User with email {email} not found",
                 )
             return user
         except HTTPException:
@@ -122,7 +124,7 @@ class UserPrivateViews:
             logger.error(f"Error getting user by email: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error retrieving user: {str(e)}"
+                detail=f"Error retrieving user: {str(e)}",
             )
 
     @router.put(
@@ -133,14 +135,14 @@ class UserPrivateViews:
     async def update_user(self, user_id: str, user_data: UserUpdate) -> UserResponse:
         """
         Update user information.
-        
+
         Args:
             user_id: User ID to update
             user_data: Fields to update (name, email, date_birth)
-            
+
         Returns:
             Updated user response
-            
+
         Raises:
             HTTPException: If user not found, email exists, or update fails
         """
@@ -149,22 +151,19 @@ class UserPrivateViews:
             if not user:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with ID {user_id} not found"
+                    detail=f"User with ID {user_id} not found",
                 )
             return user
         except ValueError as ve:
             logger.error(f"Validation error updating user: {ve}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=str(ve)
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error updating user: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error updating user: {str(e)}"
+                detail=f"Error updating user: {str(e)}",
             )
 
     @router.delete(
@@ -173,10 +172,10 @@ class UserPrivateViews:
     )
     async def delete_user(self, user_id: str) -> None:
         """Delete (deactivate) a user account.
-        
+
         Args:
             user_id: User ID to delete
-            
+
         Raises:
             HTTPException: If user not found or deletion fails
         """
@@ -185,7 +184,7 @@ class UserPrivateViews:
             if not deleted:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"User with ID {user_id} not found"
+                    detail=f"User with ID {user_id} not found",
                 )
         except HTTPException:
             raise
@@ -193,5 +192,5 @@ class UserPrivateViews:
             logger.error(f"Error deleting user: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error deleting user: {str(e)}"
+                detail=f"Error deleting user: {str(e)}",
             )

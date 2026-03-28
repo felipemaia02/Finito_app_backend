@@ -22,7 +22,7 @@ class TestExpenseDependenciesGetRepository:
 
     def test_get_repository_method_exists(self):
         """Test get_repository method exists on class"""
-        assert hasattr(ExpenseDependencies, 'get_repository')
+        assert hasattr(ExpenseDependencies, "get_repository")
 
 
 class TestExpenseDependenciesGetController:
@@ -35,20 +35,20 @@ class TestExpenseDependenciesGetController:
     def test_get_controller_requires_repository_parameter(self):
         """Test get_controller accepts repository parameter"""
         mock_repo = MagicMock(spec=IExpenseRepository)
-        
+
         controller = ExpenseDependencies.get_controller(repository=mock_repo)
         assert controller is not None
 
     def test_get_controller_returns_controller_instance(self):
         """Test get_controller returns controller"""
         mock_repo = MagicMock(spec=IExpenseRepository)
-        
+
         controller = ExpenseDependencies.get_controller(repository=mock_repo)
         assert isinstance(controller, ExpenseController)
 
     def test_get_controller_method_exists(self):
         """Test get_controller method exists on class"""
-        assert hasattr(ExpenseDependencies, 'get_controller')
+        assert hasattr(ExpenseDependencies, "get_controller")
 
 
 class TestDependenciesStructure:
@@ -65,5 +65,5 @@ class TestDependenciesStructure:
     def test_dependencies_has_static_methods(self):
         """Test ExpenseDependencies methods are static"""
         # Both methods should be accessible from class without instance
-        assert hasattr(ExpenseDependencies, 'get_repository')
-        assert hasattr(ExpenseDependencies, 'get_controller')
+        assert hasattr(ExpenseDependencies, "get_repository")
+        assert hasattr(ExpenseDependencies, "get_controller")

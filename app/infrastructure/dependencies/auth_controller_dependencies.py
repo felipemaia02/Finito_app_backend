@@ -11,7 +11,7 @@ class AuthDependencies:
     def get_controller() -> AuthController:
         """
         Get the authentication controller instance.
-        
+
         Returns:
             AuthController instance with repository dependency
         """

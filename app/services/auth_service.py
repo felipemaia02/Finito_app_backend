@@ -17,10 +17,10 @@ class APIKeyAuthService(IAuthService):
     async def validate_api_key(self, api_key: str) -> bool:
         """
         Validate an API key by comparing with settings.
-        
+
         Args:
             api_key: The API key to validate
-            
+
         Returns:
             True if the key matches settings.api_key, False otherwise
         """

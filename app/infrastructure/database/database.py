@@ -26,14 +26,16 @@ class Database:
         Should be called on application startup.
         """
         settings = get_settings()
-        
+
         try:
             logger.info(f"Connecting to MongoDB: {settings.mongodb_db_name}")
             cls._client = AsyncIOMotorClient(settings.mongodb_url)
             cls._db = cls._client[settings.mongodb_db_name]
-            
-            await cls._client.admin.command('ping')
-            logger.info(f"Successfully connected to MongoDB: {settings.mongodb_db_name}")
+
+            await cls._client.admin.command("ping")
+            logger.info(
+                f"Successfully connected to MongoDB: {settings.mongodb_db_name}"
+            )
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
             raise
@@ -54,39 +56,43 @@ class Database:
     def get_db(cls) -> AsyncIOMotorDatabase:
         """
         Get the active MongoDB database instance.
-        
+
         Returns:
             AsyncIOMotorDatabase: The MongoDB database connection object
-            
+
         Raises:
             RuntimeError: If database connection is not initialized
         """
         if cls._db is None:
             logger.error("Attempted to get database instance before initialization")
-            raise RuntimeError("Database connection not initialized. Call Database.connect() first.")
+            raise RuntimeError(
+                "Database connection not initialized. Call Database.connect() first."
+            )
         return cls._db
 
     @classmethod
     def get_client(cls) -> AsyncIOMotorClient:
         """
         Get the active MongoDB client instance.
-        
+
         Returns:
             AsyncIOMotorClient: The MongoDB client connection object
-            
+
         Raises:
             RuntimeError: If database connection is not initialized
         """
         if cls._client is None:
             logger.error("Attempted to get client instance before initialization")
-            raise RuntimeError("Database connection not initialized. Call Database.connect() first.")
+            raise RuntimeError(
+                "Database connection not initialized. Call Database.connect() first."
+            )
         return cls._client
 
     @classmethod
     def is_connected(cls) -> bool:
         """
         Check if database connection is active.
-        
+
         Returns:
             bool: True if connected, False otherwise
         """
