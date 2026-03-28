@@ -115,6 +115,19 @@ class TestUserEntity:
         )
         assert user.is_active is True
 
+    def test_user_birth_date_accepts_iso_string(self):
+        """Test that date_birth validator parses ISO string."""
+        # Arrange / Act
+        user = User(
+            name="Test User",
+            email="test@example.com",
+            password="password123",
+            date_birth="1990-05-15",  # ISO string format
+        )
+
+        # Assert
+        assert user.date_birth == date(1990, 5, 15)
+
     def test_user_is_active_can_be_set_false(self, sample_user_data):
         """Test that is_active can be set to False."""
         sample_user_data["is_active"] = False

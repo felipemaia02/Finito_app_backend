@@ -208,6 +208,24 @@ class TestOAuth2ServiceTokenVerification:
         # Assert
         assert token_data is None  # Token type mismatch
 
+    def test_verify_token_missing_exp_claim(self, oauth2_service):
+        """Test verification of token with 'sub' but missing 'exp' returns None."""
+        # Arrange
+        import jwt
+
+        payload = {"sub": "test@example.com", "type": "access"}  # Missing 'exp'
+        token = jwt.encode(
+            payload,
+            oauth2_service.settings.secret_key,
+            algorithm=oauth2_service.algorithm,
+        )
+
+        # Act
+        token_data = oauth2_service.verify_token(token, token_type="access")
+
+        # Assert
+        assert token_data is None
+
     def test_verify_invalid_token(self, oauth2_service):
         """Test verification of invalid token."""
         # Arrange
@@ -300,3 +318,14 @@ class TestOAuth2ServiceIntegration:
         assert refresh_token_data is not None
         assert refresh_token_data.sub == email
         assert isinstance(expires_at, datetime)
+
+    def test_verify_password_returns_false_on_bcrypt_exception(self, oauth2_service, mocker):
+        """Test verify_password returns False when bcrypt raises an exception."""
+        # Arrange
+        mocker.patch("bcrypt.checkpw", side_effect=ValueError("bad hash"))
+
+        # Act
+        result = oauth2_service.verify_password("password", "invalid_hash")
+
+        # Assert
+        assert result is False

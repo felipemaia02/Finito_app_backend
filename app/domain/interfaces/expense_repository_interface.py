@@ -30,7 +30,7 @@ class IExpenseRepository(BaseRepository[Expense]):
         Returns:
             List of all expenses in the group regardless of who added them
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def get_amounts_and_types(self, group_id: str) -> List[Dict[str, any]]:
@@ -44,6 +44,6 @@ class IExpenseRepository(BaseRepository[Expense]):
 
         Returns:
             List of dictionaries containing only amount_cents and type_expense
-            Example: [{"amount_cents": 2500, "type_expense": "credit_card"}, ...]
+            Example: [{{"amount_cents": 2500, "type_expense": "credit_card"}}, ...]
         """
-        pass
+        pass  # pragma: no cover

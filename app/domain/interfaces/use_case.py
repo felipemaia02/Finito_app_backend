@@ -24,4 +24,4 @@ class IUseCase(ABC, Generic[InputType, OutputType]):
         Returns:
             Output data from the use case
         """
-        pass
+        pass  # pragma: no cover

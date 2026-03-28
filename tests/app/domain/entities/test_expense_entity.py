@@ -191,6 +191,68 @@ class TestExpenseEntityAllCategories:
         assert expense.category == ExpenseCategory.GROCERIES
 
 
+class TestExpenseEntityAmountProperties:
+    """Test Expense amount properties and validators."""
+
+    def test_validate_amount_exceeds_maximum_raises_value_error(self):
+        # Arrange / Act / Assert
+        with pytest.raises(ValueError, match="Amount exceeds maximum"):
+            Expense(
+                group_id="group-123",
+                amount_cents=10000000,  # > 9999999
+                category=ExpenseCategory.GROCERIES,
+                type_expense=ExpenseType.CASH,
+                spent_by="User",
+            )
+
+    def test_amount_decimal_property_converts_cents_to_decimal(self):
+        # Arrange
+        expense = Expense(
+            group_id="group-123",
+            amount_cents=2500,
+            category=ExpenseCategory.GROCERIES,
+            type_expense=ExpenseType.CASH,
+            spent_by="User",
+        )
+
+        # Act
+        result = expense.amount_decimal
+
+        # Assert
+        assert result == 25.0
+
+    def test_from_decimal_converts_float_to_cents(self):
+        # Arrange / Act
+        result = Expense.from_decimal(25.50)
+
+        # Assert
+        assert result == 2550
+
+    def test_from_decimal_rounds_correctly(self):
+        # Arrange / Act
+        result = Expense.from_decimal(10.999)
+
+        # Assert
+        assert result == 1100  # rounds to nearest cent
+
+    def test_str_representation(self):
+        # Arrange
+        expense = Expense(
+            group_id="group-123",
+            amount_cents=2500,
+            category=ExpenseCategory.GROCERIES,
+            type_expense=ExpenseType.CASH,
+            spent_by="John Doe",
+        )
+
+        # Act
+        result = str(expense)
+
+        # Assert
+        assert "25.00" in result
+        assert "John Doe" in result
+
+
 class TestExpenseEntityAllTypes:
     """Test Expense works with all payment types"""
 

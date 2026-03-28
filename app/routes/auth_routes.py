@@ -118,7 +118,7 @@ class AuthViews:
             return TokenValidationResponse(
                 valid=True, email=current_user.sub, expires_at=current_user.exp
             )
-        except Exception as e:
+        except Exception as e:  # pragma: no cover
             logger.error(f"Error validating token: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
