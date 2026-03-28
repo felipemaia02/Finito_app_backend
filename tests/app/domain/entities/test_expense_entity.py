@@ -17,7 +17,7 @@ class TestExpenseEntityInitialization:
             amount_cents=2500,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CASH,
-            spent_by="John Doe"
+            spent_by="John Doe",
         )
         assert expense.group_id == "group-123"
         assert expense.amount_cents == 2500
@@ -33,7 +33,7 @@ class TestExpenseEntityInitialization:
             category=ExpenseCategory.RESTAURANTS,
             type_expense=ExpenseType.CREDIT_CARD,
             spent_by="Jane",
-            note="Lunch with team"
+            note="Lunch with team",
         )
         assert expense.note == "Lunch with team"
 
@@ -44,7 +44,7 @@ class TestExpenseEntityInitialization:
             amount_cents=1000,
             category=ExpenseCategory.UTILITIES,
             type_expense=ExpenseType.DEBIT_CARD,
-            spent_by="Admin"
+            spent_by="Admin",
         )
         assert expense.note is None
 
@@ -55,9 +55,9 @@ class TestExpenseEntityInitialization:
             amount_cents=1000,
             category=ExpenseCategory.SHOPPING,
             type_expense=ExpenseType.PIX_TRANSFER,
-            spent_by="User"
+            spent_by="User",
         )
-        assert hasattr(expense, 'is_deleted')
+        assert hasattr(expense, "is_deleted")
         assert expense.is_deleted is False
 
     def test_expense_creation_with_explicit_is_deleted(self):
@@ -68,7 +68,7 @@ class TestExpenseEntityInitialization:
             category=ExpenseCategory.ENTERTAINMENT,
             type_expense=ExpenseType.CASH,
             spent_by="User",
-            is_deleted=True
+            is_deleted=True,
         )
         assert expense.is_deleted is True
 
@@ -84,7 +84,7 @@ class TestExpenseEntityValidation:
                 amount_cents=1000,
                 category=ExpenseCategory.GROCERIES,
                 type_expense=ExpenseType.CASH,
-                spent_by="User"
+                spent_by="User",
             )
 
     def test_expense_requires_positive_amount(self):
@@ -95,7 +95,7 @@ class TestExpenseEntityValidation:
                 amount_cents=0,  # Must be > 0
                 category=ExpenseCategory.GROCERIES,
                 type_expense=ExpenseType.CASH,
-                spent_by="User"
+                spent_by="User",
             )
 
     def test_expense_requires_spent_by_with_min_length(self):
@@ -106,7 +106,7 @@ class TestExpenseEntityValidation:
                 amount_cents=1000,
                 category=ExpenseCategory.GROCERIES,
                 type_expense=ExpenseType.CASH,
-                spent_by=""  # Must have length >= 1
+                spent_by="",  # Must have length >= 1
             )
 
     def test_expense_note_max_length(self):
@@ -118,7 +118,7 @@ class TestExpenseEntityValidation:
                 category=ExpenseCategory.GROCERIES,
                 type_expense=ExpenseType.CASH,
                 spent_by="User",
-                note="x" * 501  # Max 500 chars
+                note="x" * 501,  # Max 500 chars
             )
 
 
@@ -133,7 +133,7 @@ class TestExpenseEntityInheritance:
             amount_cents=1000,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CASH,
-            spent_by="User"
+            spent_by="User",
         )
         assert expense.id == "expense-123"
 
@@ -144,10 +144,10 @@ class TestExpenseEntityInheritance:
             amount_cents=1000,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CASH,
-            spent_by="User"
+            spent_by="User",
         )
-        assert hasattr(expense, 'created_at')
-        assert hasattr(expense, 'updated_at')
+        assert hasattr(expense, "created_at")
+        assert hasattr(expense, "updated_at")
         assert isinstance(expense.created_at, datetime)
         assert isinstance(expense.updated_at, datetime)
 
@@ -158,7 +158,7 @@ class TestExpenseEntityInheritance:
             amount_cents=1000,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CASH,
-            spent_by="User"
+            spent_by="User",
         )
         original_updated = expense.updated_at
         expense.update_timestamp()
@@ -175,7 +175,7 @@ class TestExpenseEntityAllCategories:
             amount_cents=1000,
             category=ExpenseCategory.TRANSPORTATION,
             type_expense=ExpenseType.CASH,
-            spent_by="U"
+            spent_by="U",
         )
         assert expense.category == ExpenseCategory.TRANSPORTATION
 
@@ -186,7 +186,7 @@ class TestExpenseEntityAllCategories:
             amount_cents=5000,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CREDIT_CARD,
-            spent_by="U"
+            spent_by="U",
         )
         assert expense.category == ExpenseCategory.GROCERIES
 
@@ -201,7 +201,7 @@ class TestExpenseEntityAllTypes:
             amount_cents=1000,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CASH,
-            spent_by="U"
+            spent_by="U",
         )
         assert expense.type_expense == ExpenseType.CASH
 
@@ -212,7 +212,7 @@ class TestExpenseEntityAllTypes:
             amount_cents=2000,
             category=ExpenseCategory.RESTAURANTS,
             type_expense=ExpenseType.CREDIT_CARD,
-            spent_by="U"
+            spent_by="U",
         )
         assert expense.type_expense == ExpenseType.CREDIT_CARD
 
@@ -223,7 +223,7 @@ class TestExpenseEntityAllTypes:
             amount_cents=1500,
             category=ExpenseCategory.UTILITIES,
             type_expense=ExpenseType.DEBIT_CARD,
-            spent_by="U"
+            spent_by="U",
         )
         assert expense.type_expense == ExpenseType.DEBIT_CARD
 
@@ -234,6 +234,6 @@ class TestExpenseEntityAllTypes:
             amount_cents=3000,
             category=ExpenseCategory.ENTERTAINMENT,
             type_expense=ExpenseType.PIX_TRANSFER,
-            spent_by="U"
+            spent_by="U",
         )
         assert expense.type_expense == ExpenseType.PIX_TRANSFER

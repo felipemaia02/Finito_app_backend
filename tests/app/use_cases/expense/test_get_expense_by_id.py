@@ -19,7 +19,45 @@ class TestGetExpenseByIdUseCase:
         """Test use case has execute method"""
         mock_repo = AsyncMock(spec=IExpenseRepository)
         use_case = GetExpenseByIdUseCase(mock_repo)
-        assert hasattr(use_case, 'execute')
+        assert hasattr(use_case, "execute")
+
+    @pytest.mark.asyncio
+    async def test_execute_found(self, mock_expense_repository, sample_expense_entity):
+        # Arrange
+        mock_expense_repository.get_by_id.return_value = sample_expense_entity
+        use_case = GetExpenseByIdUseCase(mock_expense_repository)
+
+        # Act
+        result = await use_case.execute(sample_expense_entity.id)
+
+        # Assert
+        assert result is not None
+        assert result.id == sample_expense_entity.id
+        mock_expense_repository.get_by_id.assert_called_once_with(
+            sample_expense_entity.id
+        )
+
+    @pytest.mark.asyncio
+    async def test_execute_not_found(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.get_by_id.return_value = None
+        use_case = GetExpenseByIdUseCase(mock_expense_repository)
+
+        # Act
+        result = await use_case.execute("nonexistent-id")
+
+        # Assert
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_execute_propagates_exception(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.get_by_id.side_effect = Exception("DB error")
+        use_case = GetExpenseByIdUseCase(mock_expense_repository)
+
+        # Act & Assert
+        with pytest.raises(Exception, match="DB error"):
+            await use_case.execute("some-id")
 
 
 class TestGetExpenseByIdStructure:

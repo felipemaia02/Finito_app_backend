@@ -19,7 +19,42 @@ class TestDeleteExpenseUseCase:
         """Test use case has execute method"""
         mock_repo = AsyncMock(spec=IExpenseRepository)
         use_case = DeleteExpenseUseCase(mock_repo)
-        assert hasattr(use_case, 'execute')
+        assert hasattr(use_case, "execute")
+
+    @pytest.mark.asyncio
+    async def test_execute_success(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.delete.return_value = True
+        use_case = DeleteExpenseUseCase(mock_expense_repository)
+
+        # Act
+        result = await use_case.execute("expense-id-123")
+
+        # Assert
+        assert result is True
+        mock_expense_repository.delete.assert_called_once_with("expense-id-123")
+
+    @pytest.mark.asyncio
+    async def test_execute_not_found(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.delete.return_value = False
+        use_case = DeleteExpenseUseCase(mock_expense_repository)
+
+        # Act
+        result = await use_case.execute("nonexistent-id")
+
+        # Assert
+        assert result is False
+
+    @pytest.mark.asyncio
+    async def test_execute_propagates_exception(self, mock_expense_repository):
+        # Arrange
+        mock_expense_repository.delete.side_effect = Exception("DB error")
+        use_case = DeleteExpenseUseCase(mock_expense_repository)
+
+        # Act & Assert
+        with pytest.raises(Exception, match="DB error"):
+            await use_case.execute("some-id")
 
 
 class TestDeleteExpenseStructure:

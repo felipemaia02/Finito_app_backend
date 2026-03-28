@@ -31,13 +31,13 @@ class UserPublicViews:
     async def register_user(self, user_data: UserCreate) -> UserResponse:
         """
         Register a new user in the system.
-        
+
         Args:
             user_data: User registration data including name, email, password, and birth date
-            
+
         Returns:
             Created user response with ID
-            
+
         Raises:
             HTTPException: If email already exists or registration fails
         """
@@ -46,12 +46,11 @@ class UserPublicViews:
         except ValueError as ve:
             logger.error(f"Validation error registering user: {ve}")
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail=str(ve)
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(ve)
             )
         except Exception as e:
             logger.error(f"Error registering user: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error registering user: {str(e)}"
+                detail=f"Error registering user: {str(e)}",
             )

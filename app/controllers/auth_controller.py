@@ -17,12 +17,12 @@ class AuthController:
     Coordinates between API routes and the auth use case layer.
     Acts as a thin HTTP coordination layer.
     """
-    
+
     def __init__(self, repository: IUserRepository):
         """
         Initialize the controller with a repository dependency.
         Creates use case instances for dependency injection.
-        
+
         Args:
             repository: Implementation of IUserRepository
         """
@@ -31,18 +31,18 @@ class AuthController:
         self.login_use_case = LoginUseCase(repository)
         self.refresh_token_use_case = RefreshTokenUseCase()
         logger.info("AuthController initialized successfully")
-    
+
     async def login(self, login_data: LoginRequest) -> TokenResponse:
         """
         Authenticate user with email and password.
         Delegates to LoginUseCase.
-        
+
         Args:
             login_data: LoginRequest schema with email and password
-            
+
         Returns:
             TokenResponse with JWT access token and refresh token
-            
+
         Raises:
             ValueError: If email not found or password is incorrect
             Exception: If database operation fails
@@ -53,18 +53,18 @@ class AuthController:
         except Exception as e:
             logger.error(f"Error logging in: {e}")
             raise
-    
+
     async def refresh_token(self, refresh_data: RefreshTokenRequest) -> TokenResponse:
         """
         Refresh an expired access token.
         Delegates to RefreshTokenUseCase.
-        
+
         Args:
             refresh_data: RefreshTokenRequest schema with refresh token
-            
+
         Returns:
             TokenResponse with new JWT access token
-            
+
         Raises:
             ValueError: If refresh token is invalid or expired
             Exception: If token operation fails

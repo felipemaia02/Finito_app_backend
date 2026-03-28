@@ -35,6 +35,7 @@ class Settings(BaseSettings):
         case_sensitive = False
         extra = "ignore"
 
+
 @lru_cache()
 def get_settings() -> Settings:
     """

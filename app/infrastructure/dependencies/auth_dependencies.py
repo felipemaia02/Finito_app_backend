@@ -16,7 +16,7 @@ class AuthDependencies:
     def get_auth_service() -> APIKeyAuthService:
         """
         Get the authentication service instance.
-        
+
         Returns:
             APIKeyAuthService: Authentication service instance
         """
@@ -26,25 +26,24 @@ class AuthDependencies:
     async def verify_api_key(x_api_key: str = Header(...)) -> str:
         """
         Dependency to verify API key from request header.
-        
+
         Args:
             x_api_key: API key from X-API-Key header (required)
-            
+
         Returns:
             The verified API key
-            
+
         Raises:
             HTTPException: If API key is missing or invalid
         """
         auth_service = AuthDependencies.get_auth_service()
         is_valid = await auth_service.validate_api_key(x_api_key)
-        
+
         if not is_valid:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid API key"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
             )
-        
+
         return x_api_key
 
 

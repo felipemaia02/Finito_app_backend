@@ -13,7 +13,7 @@ from app.domain.enums.expense_type_enum import ExpenseType
 class Expense(BaseEntity):
     """
     Expense entity representing a financial transaction.
-    
+
     Attributes:
         id: Unique identifier (MongoDB ObjectId as string)
         group_id: ID of the expense group (multiple participants can contribute)
@@ -28,13 +28,24 @@ class Expense(BaseEntity):
     """
 
     group_id: str = Field(..., min_length=1, description="ID of the expense group")
-    amount_cents: int = Field(..., gt=0, description="Amount in cents (must be positive)")
+    amount_cents: int = Field(
+        ..., gt=0, description="Amount in cents (must be positive)"
+    )
     category: ExpenseCategory = Field(..., description="Expense category")
     type_expense: ExpenseType = Field(..., description="Payment method type")
-    spent_by: str = Field(..., min_length=1, max_length=100, description="Person/entity who spent")
-    date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), description="Date of expense")
-    note: Optional[str] = Field(None, max_length=500, description="Optional note about the expense")
-    is_deleted: bool = Field(False, description="Soft delete flag - True if expense is deleted logically")
+    spent_by: str = Field(
+        ..., min_length=1, max_length=100, description="Person/entity who spent"
+    )
+    date: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Date of expense",
+    )
+    note: Optional[str] = Field(
+        None, max_length=500, description="Optional note about the expense"
+    )
+    is_deleted: bool = Field(
+        False, description="Soft delete flag - True if expense is deleted logically"
+    )
 
     class Config:
         populate_by_name = True
@@ -51,7 +62,7 @@ class Expense(BaseEntity):
                 "note": "Lunch at downtown restaurant",
                 "is_deleted": False,
                 "created_at": "2026-02-10T12:00:00Z",
-                "updated_at": "2026-02-10T12:00:00Z"
+                "updated_at": "2026-02-10T12:00:00Z",
             }
         }
 

@@ -28,19 +28,19 @@ class TestGetAllExpensesInput:
     def test_default_skip_value(self):
         """Test skip field has default value"""
         dto = GetAllExpensesInput(group_id="group-123")
-        assert hasattr(dto, 'skip')
+        assert hasattr(dto, "skip")
 
     def test_default_limit_value(self):
         """Test limit field has default value"""
         dto = GetAllExpensesInput(group_id="group-123")
-        assert hasattr(dto, 'limit')
+        assert hasattr(dto, "limit")
 
     def test_can_serialize(self):
         """Test GetAllExpensesInput can be serialized"""
         dto = GetAllExpensesInput(group_id="group-123", skip=5, limit=10)
         # NamedTuple has _asdict method
         data = dto._asdict()
-        assert 'group_id' in data
+        assert "group_id" in data
 
 
 class TestUpdateExpenseInput:
@@ -49,29 +49,20 @@ class TestUpdateExpenseInput:
     def test_create_with_required_fields(self):
         """Test creating UpdateExpenseInput with required fields"""
         update_data = ExpenseUpdate(amount_cents=2000)
-        dto = UpdateExpenseInput(
-            expense_id="exp-123",
-            expense_data=update_data
-        )
+        dto = UpdateExpenseInput(expense_id="exp-123", expense_data=update_data)
         assert dto.expense_id == "exp-123"
         assert dto.expense_data == update_data
 
     def test_expense_id_field(self):
         """Test UpdateExpenseInput has expense_id field"""
         update_data = ExpenseUpdate(amount_cents=1000)
-        dto = UpdateExpenseInput(
-            expense_id="exp-456",
-            expense_data=update_data
-        )
+        dto = UpdateExpenseInput(expense_id="exp-456", expense_data=update_data)
         assert dto.expense_id == "exp-456"
 
     def test_expense_data_field(self):
         """Test UpdateExpenseInput has expense_data field"""
         update_data = ExpenseUpdate(category=ExpenseCategory.GROCERIES, note="Dinner")
-        dto = UpdateExpenseInput(
-            expense_id="exp-789",
-            expense_data=update_data
-        )
+        dto = UpdateExpenseInput(expense_id="exp-789", expense_data=update_data)
         assert dto.expense_data == update_data
 
     def test_expense_data_with_multiple_fields(self):
@@ -83,10 +74,7 @@ class TestUpdateExpenseInput:
     def test_can_serialize(self):
         """Test UpdateExpenseInput can be serialized"""
         update_data = ExpenseUpdate(amount_cents=1500)
-        dto = UpdateExpenseInput(
-            expense_id="exp-123",
-            expense_data=update_data
-        )
+        dto = UpdateExpenseInput(expense_id="exp-123", expense_data=update_data)
         # NamedTuple has _asdict method
         data = dto._asdict()
         assert "expense_id" in data

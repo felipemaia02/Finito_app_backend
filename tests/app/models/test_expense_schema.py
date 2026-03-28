@@ -16,7 +16,7 @@ class TestExpenseCreateSchema:
             amount_cents=2500,
             category=ExpenseCategory.GROCERIES,
             type_expense=ExpenseType.CASH,
-            spent_by="John"
+            spent_by="John",
         )
         assert schema.group_id == "group-123"
         assert schema.amount_cents == 2500
@@ -29,7 +29,7 @@ class TestExpenseCreateSchema:
             category=ExpenseCategory.RESTAURANTS,
             type_expense=ExpenseType.CREDIT_CARD,
             spent_by="Jane",
-            note="Lunch"
+            note="Lunch",
         )
         assert schema.note == "Lunch"
 
@@ -41,7 +41,7 @@ class TestExpenseCreateSchema:
                 amount_cents=-100,
                 category=ExpenseCategory.GROCERIES,
                 type_expense=ExpenseType.CASH,
-                spent_by="U"
+                spent_by="U",
             )
 
     def test_create_can_serialize(self):
@@ -51,7 +51,7 @@ class TestExpenseCreateSchema:
             amount_cents=1500,
             category=ExpenseCategory.UTILITIES,
             type_expense=ExpenseType.DEBIT_CARD,
-            spent_by="A"
+            spent_by="A",
         )
         data = schema.model_dump()
         assert "group_id" in data
@@ -73,7 +73,7 @@ class TestExpenseUpdateSchema:
             category=ExpenseCategory.ENTERTAINMENT,
             type_expense=ExpenseType.PIX_TRANSFER,
             spent_by="Bob",
-            note="Updated note"
+            note="Updated note",
         )
         assert schema.amount_cents == 3000
         assert schema.category == ExpenseCategory.ENTERTAINMENT
@@ -106,7 +106,7 @@ class TestExpenseResponseSchema:
             spent_by="User",
             date="2026-02-10T00:00:00Z",
             created_at="2026-02-10T00:00:00Z",
-            updated_at="2026-02-10T00:00:00Z"
+            updated_at="2026-02-10T00:00:00Z",
         )
         assert response.id == "exp-123"
         assert response.group_id == "group-456"
@@ -123,7 +123,7 @@ class TestExpenseResponseSchema:
             note="Dinner note",
             date="2026-02-10T00:00:00Z",
             created_at="2026-02-10T00:00:00Z",
-            updated_at="2026-02-10T00:00:00Z"
+            updated_at="2026-02-10T00:00:00Z",
         )
         assert response.note == "Dinner note"
 
@@ -138,7 +138,7 @@ class TestExpenseResponseSchema:
             spent_by="Admin",
             date="2026-02-10T00:00:00Z",
             created_at="2026-02-10T00:00:00Z",
-            updated_at="2026-02-10T00:00:00Z"
+            updated_at="2026-02-10T00:00:00Z",
         )
         json_str = response.model_dump_json()
         assert isinstance(json_str, str)
@@ -155,8 +155,8 @@ class TestExpenseResponseSchema:
             spent_by="X",
             date="2026-02-10T00:00:00Z",
             created_at="2026-02-10T00:00:00Z",
-            updated_at="2026-02-10T00:00:00Z"
+            updated_at="2026-02-10T00:00:00Z",
         )
         data = response.model_dump()
-        assert data['id'] == "resp-1"
-        assert data['amount_cents'] == 1000
+        assert data["id"] == "resp-1"
+        assert data["amount_cents"] == 1000

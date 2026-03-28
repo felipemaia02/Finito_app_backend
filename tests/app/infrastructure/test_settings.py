@@ -22,7 +22,7 @@ class TestSettingsInitialization:
 
     def test_settings_has_config(self):
         """Test Settings has model config"""
-        assert hasattr(Settings, 'model_config')
+        assert hasattr(Settings, "model_config")
 
 
 class TestSettingsConfiguration:
@@ -30,8 +30,8 @@ class TestSettingsConfiguration:
 
     def test_settings_model_fields(self):
         """Test Settings has model fields"""
-        assert hasattr(Settings, 'model_fields')
+        assert hasattr(Settings, "model_fields")
 
     def test_settings_is_pydantic_model(self):
         """Test Settings is a Pydantic BaseSettings"""
-        assert hasattr(Settings, 'model_validate')
+        assert hasattr(Settings, "model_validate")

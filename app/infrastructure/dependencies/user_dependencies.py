@@ -14,7 +14,7 @@ class UserDependencies:
     def get_repository() -> IUserRepository:
         """
         Provides the user repository instance.
-        
+
         Returns:
             IUserRepository: MongoDB implementation of user repository
         """
@@ -26,10 +26,10 @@ class UserDependencies:
     ) -> UserController:
         """
         Provides the user controller instance with injected repository.
-        
+
         Args:
             repository: Injected user repository
-            
+
         Returns:
             UserController: Controller instance with repository
         """

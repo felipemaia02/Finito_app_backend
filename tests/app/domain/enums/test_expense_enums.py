@@ -58,6 +58,7 @@ class TestExpenseCategoryEnumValues:
         """Test all categories have unique names"""
         names = [cat.name for cat in ExpenseCategory]
         assert len(names) == len(set(names))
+
     def test_categories_unique_names(self):
         """Test all categories have unique names"""
         names = [cat.name for cat in ExpenseCategory]
@@ -91,9 +92,9 @@ class TestExpenseCategoryEnumComparison:
     def test_category_members(self):
         """Test getting specific category members"""
         # Test some key categories exist
-        assert hasattr(ExpenseCategory, 'UTILITIES')
-        assert hasattr(ExpenseCategory, 'RESTAURANTS')
-        assert hasattr(ExpenseCategory, 'ENTERTAINMENT')
+        assert hasattr(ExpenseCategory, "UTILITIES")
+        assert hasattr(ExpenseCategory, "RESTAURANTS")
+        assert hasattr(ExpenseCategory, "ENTERTAINMENT")
 
 
 class TestExpenseCategoryEnumBehavior:
@@ -106,13 +107,13 @@ class TestExpenseCategoryEnumBehavior:
 
     def test_category_has_name_attribute(self):
         """Test category has name attribute"""
-        assert hasattr(ExpenseCategory.UTILITIES, 'name')
-        assert ExpenseCategory.UTILITIES.name == 'UTILITIES'
+        assert hasattr(ExpenseCategory.UTILITIES, "name")
+        assert ExpenseCategory.UTILITIES.name == "UTILITIES"
 
     def test_category_has_value_attribute(self):
         """Test category has value attribute"""
-        assert hasattr(ExpenseCategory.UTILITIES, 'value')
-        assert ExpenseCategory.UTILITIES.value == 'utilities'
+        assert hasattr(ExpenseCategory.UTILITIES, "value")
+        assert ExpenseCategory.UTILITIES.value == "utilities"
 
     def test_category_callable_from_value(self):
         """Test category can be instantiated from value"""
@@ -201,10 +202,10 @@ class TestExpenseTypeEnumComparison:
 
     def test_type_members(self):
         """Test getting specific type members"""
-        assert hasattr(ExpenseType, 'CASH')
-        assert hasattr(ExpenseType, 'CREDIT_CARD')
-        assert hasattr(ExpenseType, 'DEBIT_CARD')
-        assert hasattr(ExpenseType, 'PIX_TRANSFER')
+        assert hasattr(ExpenseType, "CASH")
+        assert hasattr(ExpenseType, "CREDIT_CARD")
+        assert hasattr(ExpenseType, "DEBIT_CARD")
+        assert hasattr(ExpenseType, "PIX_TRANSFER")
 
 
 class TestExpenseTypeEnumBehavior:
@@ -217,13 +218,13 @@ class TestExpenseTypeEnumBehavior:
 
     def test_type_has_name_attribute(self):
         """Test type has name attribute"""
-        assert hasattr(ExpenseType.CASH, 'name')
-        assert ExpenseType.CASH.name == 'CASH'
+        assert hasattr(ExpenseType.CASH, "name")
+        assert ExpenseType.CASH.name == "CASH"
 
     def test_type_has_value_attribute(self):
         """Test type has value attribute"""
-        assert hasattr(ExpenseType.CASH, 'value')
-        assert ExpenseType.CASH.value == 'cash'
+        assert hasattr(ExpenseType.CASH, "value")
+        assert ExpenseType.CASH.value == "cash"
 
     def test_type_str_method(self):
         """Test type __str__ method returns value"""

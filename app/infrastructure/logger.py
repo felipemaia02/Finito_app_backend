@@ -10,27 +10,26 @@ import sys
 def get_logger(name: str) -> logging.Logger:
     """
     Gets a logger configured for stdout/stderr.
-    
+
     Args:
         name: Logger name (usually __name__)
-        
+
     Returns:
         logging.Logger: Configured logger
     """
     logger = logging.getLogger(name)
-    
+
     if logger.hasHandlers():
         return logger
-    
+
     logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-        '[%(levelname)s]: %(message)s - %(asctime)s',
-        datefmt='%Y-%m-%d %H:%M:%S'
+        "[%(levelname)s]: %(message)s - %(asctime)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
-    
+
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
+
     return logger

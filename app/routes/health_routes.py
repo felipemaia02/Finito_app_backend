@@ -22,22 +22,19 @@ class HealthViews:
         """Health check endpoint - verifies database connectivity"""
         try:
             logger.info("Health check: verifying database connection")
-            
+
             if not Database.is_connected():
                 logger.warning("Health check: database not connected yet")
-                return {
-                    "status": "initializing",
-                    "database": "connecting"
-                }
-            
+                return {"status": "initializing", "database": "connecting"}
+
             db = Database.get_db()
-            await db.command('ping')
+            await db.command("ping")
 
             logger.info("Health check: all systems operational")
             return {
                 "status": "ok",
                 "database": "connected",
-                "message": f"{settings.app_name} is healthy"
+                "message": f"{settings.app_name} is healthy",
             }
         except Exception as e:
             logger.error(f"Health check failed: {e}")
@@ -46,6 +43,6 @@ class HealthViews:
                 content={
                     "status": "unhealthy",
                     "database": "disconnected",
-                    "error": str(e)
-                }
+                    "error": str(e),
+                },
             )

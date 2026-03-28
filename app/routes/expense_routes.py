@@ -34,13 +34,13 @@ class ExpenseViews:
     async def create_expense(self, expense_data: ExpenseCreate) -> ExpenseResponse:
         """
         Create a new expense in a group.
-        
+
         Args:
             expense_data: Expense creation data
-            
+
         Returns:
             Created expense response with ID
-            
+
         Raises:
             HTTPException: If creation fails
         """
@@ -50,7 +50,7 @@ class ExpenseViews:
             logger.error(f"Error creating expense: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error creating expense: {str(e)}"
+                detail=f"Error creating expense: {str(e)}",
             )
 
     @router.get("/expenses/{group_id}", response_model=List[ExpenseResponse])
@@ -62,15 +62,15 @@ class ExpenseViews:
     ) -> List[ExpenseResponse]:
         """
         Get all expenses for a group.
-        
+
         Args:
             group_id: ID of the expense group
             skip: Number of items to skip (pagination)
             limit: Maximum number of items to return
-            
+
         Returns:
             List of expenses from all participants in the group
-            
+
         Raises:
             HTTPException: If retrieval fails
         """
@@ -80,20 +80,20 @@ class ExpenseViews:
             logger.error(f"Error fetching expenses for group {group_id}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error fetching expenses: {str(e)}"
+                detail=f"Error fetching expenses: {str(e)}",
             )
 
     @router.get("/expenses/{expense_id}/details", response_model=ExpenseResponse)
     async def get_expense_details(self, expense_id: str) -> ExpenseResponse:
         """
         Get a specific expense by ID.
-        
+
         Args:
             expense_id: ID of the expense
-            
+
         Returns:
             Expense details
-            
+
         Raises:
             HTTPException: If expense not found
         """
@@ -102,7 +102,7 @@ class ExpenseViews:
             if not expense:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Expense {expense_id} not found"
+                    detail=f"Expense {expense_id} not found",
                 )
             return expense
         except HTTPException:
@@ -111,7 +111,7 @@ class ExpenseViews:
             logger.error(f"Error fetching expense {expense_id}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error fetching expense: {str(e)}"
+                detail=f"Error fetching expense: {str(e)}",
             )
 
     @router.patch("/expenses/{expense_id}", response_model=ExpenseResponse)
@@ -122,23 +122,25 @@ class ExpenseViews:
     ) -> ExpenseResponse:
         """
         Update an existing expense (partial update).
-        
+
         Args:
             expense_id: ID of the expense to update
             expense_data: Fields to update
-            
+
         Returns:
             Updated expense response
-            
+
         Raises:
             HTTPException: If expense not found or update fails
         """
         try:
-            updated_expense = await self.controller.update_expense(expense_id, expense_data)
+            updated_expense = await self.controller.update_expense(
+                expense_id, expense_data
+            )
             if not updated_expense:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Expense {expense_id} not found"
+                    detail=f"Expense {expense_id} not found",
                 )
             return updated_expense
         except HTTPException:
@@ -147,17 +149,17 @@ class ExpenseViews:
             logger.error(f"Error updating expense {expense_id}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error updating expense: {str(e)}"
+                detail=f"Error updating expense: {str(e)}",
             )
 
     @router.delete("/expenses/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
     async def delete_expense(self, expense_id: str) -> None:
         """
         Delete (soft delete) an expense.
-        
+
         Args:
             expense_id: ID of the expense to delete
-            
+
         Raises:
             HTTPException: If expense not found or deletion fails
         """
@@ -166,7 +168,7 @@ class ExpenseViews:
             if not result:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Expense {expense_id} not found"
+                    detail=f"Expense {expense_id} not found",
                 )
         except HTTPException:
             raise
@@ -174,7 +176,7 @@ class ExpenseViews:
             logger.error(f"Error deleting expense {expense_id}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error deleting expense: {str(e)}"
+                detail=f"Error deleting expense: {str(e)}",
             )
 
     @router.get("/expenses/{group_id}/analytics", response_model=List[dict])
@@ -182,13 +184,13 @@ class ExpenseViews:
         """
         Get analytics data (amounts and types) for a group.
         Optimized projection for summary calculations.
-        
+
         Args:
             group_id: ID of the expense group
-            
+
         Returns:
             List of dictionaries with amount_cents and type_expense
-            
+
         Raises:
             HTTPException: If retrieval fails
         """
@@ -198,6 +200,5 @@ class ExpenseViews:
             logger.error(f"Error fetching analytics for group {group_id}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error fetching analytics: {str(e)}"
+                detail=f"Error fetching analytics: {str(e)}",
             )
-

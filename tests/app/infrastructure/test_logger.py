@@ -17,15 +17,15 @@ class TestLoggerSetup:
         """Test get_logger returns valid logger"""
         log = get_logger(__name__)
         # Should have logging methods
-        assert hasattr(log, 'info')
-        assert hasattr(log, 'error')
-        assert hasattr(log, 'warning')
-        assert hasattr(log, 'debug')
+        assert hasattr(log, "info")
+        assert hasattr(log, "error")
+        assert hasattr(log, "warning")
+        assert hasattr(log, "debug")
 
     def test_get_logger_with_different_names(self):
         """Test get_logger with different module names"""
-        log1 = get_logger('module1')
-        log2 = get_logger('module2')
+        log1 = get_logger("module1")
+        log2 = get_logger("module2")
         assert log1 is not None
         assert log2 is not None
 
