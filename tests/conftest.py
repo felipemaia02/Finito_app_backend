@@ -133,10 +133,6 @@ def mock_user_repository() -> AsyncMock:
     return mock
 
 
-# ---------------------------------------------------------------------------
-# Group fixtures
-# ---------------------------------------------------------------------------
-
 GROUP_ID = str(ObjectId())
 USER_ID_1 = str(ObjectId())
 USER_ID_2 = str(ObjectId())
@@ -148,6 +144,7 @@ def sample_group_data() -> dict:
     return {
         "id": GROUP_ID,
         "group_name": "Viagem Europa 2026",
+        "creator_id": USER_ID_1,
         "user_ids": [USER_ID_1, USER_ID_2],
         "is_deleted": False,
         "created_at": datetime.now(timezone.utc),

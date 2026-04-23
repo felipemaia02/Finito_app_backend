@@ -53,7 +53,7 @@ class LoginUseCase:
                 )
 
             access_token, refresh_token, expires_at = (
-                self.oauth_service.create_token_pair(user.email)
+                self.oauth_service.create_token_pair(user.email, user_id=user.id)
             )
 
             expires_in = int((expires_at - datetime.utcnow()).total_seconds())

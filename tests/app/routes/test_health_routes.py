@@ -35,7 +35,7 @@ class TestHealthRoutes:
         )
 
         # Act
-        response = authenticated_client.get("/health")
+        response = authenticated_client.get("/api/v1/health")
 
         # Assert
         assert response.status_code == 200
@@ -58,7 +58,7 @@ class TestHealthRoutes:
         )
 
         # Act
-        response = authenticated_client.get("/health")
+        response = authenticated_client.get("/api/v1/health")
         data = response.json()
 
         # Assert
@@ -75,7 +75,7 @@ class TestHealthRoutes:
         )
 
         # Act
-        response = authenticated_client.get("/health")
+        response = authenticated_client.get("/api/v1/health")
 
         # Assert
         assert response.status_code == 200
@@ -97,7 +97,7 @@ class TestHealthRoutes:
         )
 
         # Act
-        response = authenticated_client.get("/health")
+        response = authenticated_client.get("/api/v1/health")
 
         # Assert
         assert response.status_code == 503

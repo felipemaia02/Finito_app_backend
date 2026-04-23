@@ -94,7 +94,7 @@ class TestCreateGroupRoute:
         mock_user_repo.get_by_id.return_value = creator
 
         # Act
-        response = client.post("/groups", json={"group_name": "Viagem Europa 2026"})
+        response = client.post("/api/v1/groups", json={"group_name": "Viagem Europa 2026"})
 
         # Assert
         assert response.status_code == 201
@@ -106,7 +106,7 @@ class TestCreateGroupRoute:
         client, _, _ = group_client
 
         # Act
-        response = client.post("/groups", json={})
+        response = client.post("/api/v1/groups", json={})
 
         # Assert
         assert response.status_code == 422
@@ -116,7 +116,7 @@ class TestCreateGroupRoute:
         client, _, _ = group_client
 
         # Act
-        response = client.post("/groups", json={"group_name": ""})
+        response = client.post("/api/v1/groups", json={"group_name": ""})
 
         # Assert
         assert response.status_code == 422
@@ -127,7 +127,7 @@ class TestCreateGroupRoute:
         mock_repo.create.side_effect = RuntimeError("DB failure")
 
         # Act
-        response = client.post("/groups", json={"group_name": "Test"})
+        response = client.post("/api/v1/groups", json={"group_name": "Test"})
 
         # Assert
         assert response.status_code == 400
@@ -152,7 +152,7 @@ class TestListAllGroupsRoute:
         mock_repo.get_all.return_value = groups
 
         # Act
-        response = client.get("/groups")
+        response = client.get("/api/v1/groups")
 
         # Assert
         assert response.status_code == 200
@@ -164,7 +164,7 @@ class TestListAllGroupsRoute:
         mock_repo.get_all.return_value = []
 
         # Act
-        response = client.get("/groups")
+        response = client.get("/api/v1/groups")
 
         # Assert
         assert response.status_code == 200
@@ -176,7 +176,7 @@ class TestListAllGroupsRoute:
         mock_repo.get_all.return_value = []
 
         # Act
-        response = client.get("/groups?skip=10&limit=5")
+        response = client.get("/api/v1/groups?skip=10&limit=5")
 
         # Assert
         assert response.status_code == 200
@@ -427,7 +427,7 @@ class TestGroupRouteExceptionHandlers:
         mock_repo.get_all.side_effect = RuntimeError("unexpected DB error")
 
         # Act
-        response = client.get("/groups")
+        response = client.get("/api/v1/groups")
 
         # Assert
         assert response.status_code == 400

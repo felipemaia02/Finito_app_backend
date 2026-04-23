@@ -10,19 +10,12 @@ from functools import lru_cache
 class Settings(BaseSettings):
     """Application configuration settings."""
 
-    # Basic
     app_name: str = "Finito App Backend"
     app_version: str = "0.1.0"
     debug: bool = False
-
-    # MongoDB
     mongodb_url: str = "mongodb://localhost:27017"
     mongodb_db_name: str = "finito_app"
-
-    # API
     api_v1_str: str = "/api/v1"
-
-    # Authentication
     api_key: str = "your-secret-api-key-change-in-env"
     secret_key: str = "your-secret-jwt-key-change-in-env"
     jwt_algorithm: str = "HS256"

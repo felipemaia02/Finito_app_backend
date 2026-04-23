@@ -7,7 +7,8 @@ from fastapi_utils.cbv import cbv
 from app.controllers.user_controller import UserController
 from app.infrastructure.dependencies.user_dependencies import UserDependencies
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
-from app.models.user_schema import UserCreate, UserResponse
+from app.models.user_schema import UserCreate
+from app.models.response_schema import StandardResponse
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -25,24 +26,14 @@ class UserPublicViews:
 
     @router.post(
         "/register",
-        response_model=UserResponse,
+        response_model=StandardResponse,
         status_code=status.HTTP_201_CREATED,
     )
-    async def register_user(self, user_data: UserCreate) -> UserResponse:
-        """
-        Register a new user in the system.
-
-        Args:
-            user_data: User registration data including name, email, password, and birth date
-
-        Returns:
-            Created user response with ID
-
-        Raises:
-            HTTPException: If email already exists or registration fails
-        """
+    async def register_user(self, user_data: UserCreate) -> StandardResponse:
+        """Register a new user in the system."""
         try:
-            return await self.controller.register_user(user_data)
+            await self.controller.register_user(user_data)
+            return StandardResponse(message="User registered successfully")
         except ValueError as ve:
             logger.error(f"Validation error registering user: {ve}")
             raise HTTPException(

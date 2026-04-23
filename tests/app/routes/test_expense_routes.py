@@ -85,7 +85,7 @@ class TestExpenseRouteCreateExpense:
             "note": "Weekend movie",
         }
 
-        response = client.post("/expenses", json=expense_data)
+        response = client.post("/api/v1/expenses", json=expense_data)
         assert response.status_code in [201, 400, 422]
 
     def test_create_expense_missing_fields(self, expense_client):
@@ -107,7 +107,7 @@ class TestExpenseRouteCreateExpense:
             "spent_by": "John Doe",
         }
 
-        response = client.post("/expenses", json=expense_data)
+        response = client.post("/api/v1/expenses", json=expense_data)
         assert response.status_code in [400, 422, 500]
 
 
@@ -118,7 +118,7 @@ class TestExpenseRouteListExpenses:
         client, mock_repo = expense_client
         mock_repo.get_all.return_value = []
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
 
@@ -127,7 +127,7 @@ class TestExpenseRouteListExpenses:
         expense = make_expense_response_obj()
         mock_repo.get_all.return_value = [expense]
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012")
         assert response.status_code == 200
         assert len(response.json()) == 1
 
@@ -135,14 +135,14 @@ class TestExpenseRouteListExpenses:
         client, mock_repo = expense_client
         mock_repo.get_all.return_value = []
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012?skip=5&limit=20")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012?skip=5&limit=20")
         assert response.status_code == 200
 
     def test_list_expenses_server_error(self, expense_client):
         client, mock_repo = expense_client
         mock_repo.get_all.side_effect = Exception("DB error")
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012")
         assert response.status_code == 500
 
 
@@ -228,7 +228,7 @@ class TestExpenseRouteAnalytics:
             {"amount_cents": 1000, "type_expense": "cash"},
         ]
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012/analytics")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012/analytics")
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
@@ -237,7 +237,7 @@ class TestExpenseRouteAnalytics:
         client, mock_repo = expense_client
         mock_repo.get_amounts_and_types.return_value = []
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012/analytics")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012/analytics")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -245,5 +245,5 @@ class TestExpenseRouteAnalytics:
         client, mock_repo = expense_client
         mock_repo.get_amounts_and_types.side_effect = Exception("DB error")
 
-        response = client.get("/expenses/507f1f77bcf86cd799439012/analytics")
+        response = client.get("/api/v1/expenses/507f1f77bcf86cd799439012/analytics")
         assert response.status_code == 500

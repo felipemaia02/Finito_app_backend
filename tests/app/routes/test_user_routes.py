@@ -59,7 +59,7 @@ class TestUserRegisterRoute:
         }
 
         # Act
-        response = client.post("/users/register", json=user_data)
+        response = client.post("/api/v1/users/register", json=user_data)
 
         # Assert
         assert response.status_code == 201
@@ -77,7 +77,7 @@ class TestUserRegisterRoute:
         }
 
         # Act
-        response = client.post("/users/register", json=user_data)
+        response = client.post("/api/v1/users/register", json=user_data)
 
         # Assert — returns 422 (ValueError) or 400
         assert response.status_code in [400, 422]
@@ -96,7 +96,7 @@ class TestUserRegisterRoute:
         }
 
         # Act
-        response = client.post("/users/register", json=user_data)
+        response = client.post("/api/v1/users/register", json=user_data)
 
         # Assert
         assert response.status_code == 400
@@ -116,7 +116,7 @@ class TestUserRoutes:
         }
 
         # Act
-        response = client.post("/users/register", json=user_data)
+        response = client.post("/api/v1/users/register", json=user_data)
 
         # Assert
         assert response.status_code == 422  # Validation error
@@ -132,7 +132,7 @@ class TestUserRoutes:
         }
 
         # Act
-        response = client.post("/users/register", json=user_data)
+        response = client.post("/api/v1/users/register", json=user_data)
 
         # Assert
         assert response.status_code == 422  # Validation error
@@ -148,7 +148,7 @@ class TestUserRoutes:
         }
 
         # Act
-        response = client.post("/users/register", json=user_data)
+        response = client.post("/api/v1/users/register", json=user_data)
 
         # Assert
         assert response.status_code == 422  # Validation error
@@ -159,7 +159,7 @@ class TestUserRoutes:
         headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
 
         # Act
-        response = client.get("/users?skip=0&limit=100", headers=headers)
+        response = client.get("/api/v1/users?skip=0&limit=100", headers=headers)
 
         # Debug
         print(f"\nGet all users test - Status: {response.status_code}")
@@ -178,7 +178,7 @@ class TestUserRoutes:
         headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
 
         # Act
-        response = client.get("/users?skip=10&limit=50", headers=headers)
+        response = client.get("/api/v1/users?skip=10&limit=50", headers=headers)
 
         # Assert
         assert response.status_code in [200, 422]

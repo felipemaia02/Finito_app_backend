@@ -10,6 +10,7 @@ from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_to
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
 from app.models.group_schema import GroupCreate, GroupUpdate, GroupResponse, AddUserRequest
 from app.models.auth_schema import TokenData
+from app.models.response_schema import StandardResponse
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -27,13 +28,16 @@ class GroupViews:
 
     @router.post(
         "/groups",
-        response_model=GroupResponse,
+        response_model=StandardResponse,
         status_code=status.HTTP_201_CREATED,
     )
-    async def create_group(self, group_data: GroupCreate) -> GroupResponse:
+    async def create_group(self, group_data: GroupCreate) -> StandardResponse:
         """Create a new group."""
         try:
-            return await self.controller.create_group(group_data, self.current_user.sub)
+            await self.controller.create_group(group_data, self.current_user.sub)
+            return StandardResponse(message="Group created successfully")
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error creating group: {e}")
             raise HTTPException(
@@ -41,55 +45,33 @@ class GroupViews:
                 detail=f"Error creating group: {str(e)}",
             )
 
-    @router.get("/groups", response_model=List[GroupResponse])
-    async def list_all_groups(
-        self,
-        skip: int = 0,
-        limit: int = 100,
-    ) -> List[GroupResponse]:
-        """Get all groups."""
+    @router.get("/groups/me", response_model=List[GroupResponse])
+    async def get_my_groups(self) -> List[GroupResponse]:
+        """Get all groups the authenticated user belongs to."""
         try:
-            return await self.controller.get_all_groups(skip=skip, limit=limit)
+            return await self.controller.get_groups_by_user_email(self.current_user.sub)
         except Exception as e:
-            logger.error(f"Error fetching groups: {e}")
+            logger.error(f"Error fetching groups for user {self.current_user.sub}: {e}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error fetching groups: {str(e)}",
+                detail=f"Error fetching user groups: {str(e)}",
             )
 
-    @router.get("/groups/{group_id}", response_model=GroupResponse)
-    async def get_group(self, group_id: str) -> GroupResponse:
-        """Get a group by ID."""
+    @router.patch("/groups/{group_id}", response_model=StandardResponse)
+    async def update_group(self, group_id: str, group_data: GroupUpdate) -> StandardResponse:
+        """Update a group's name (only if the authenticated user is a member)."""
         try:
-            result = await self.controller.get_group_by_id(group_id)
+            result = await self.controller.update_group(group_id, group_data, self.current_user.sub)
             if result is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Group {group_id} not found",
                 )
-            return result
+            return StandardResponse(message="Group updated successfully")
         except HTTPException:
             raise
-        except Exception as e:
-            logger.error(f"Error fetching group {group_id}: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error fetching group: {str(e)}",
-            )
-
-    @router.patch("/groups/{group_id}", response_model=GroupResponse)
-    async def update_group(self, group_id: str, group_data: GroupUpdate) -> GroupResponse:
-        """Update a group's name."""
-        try:
-            result = await self.controller.update_group(group_id, group_data)
-            if result is None:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Group {group_id} not found",
-                )
-            return result
-        except HTTPException:
-            raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except ValueError as ve:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(ve)
@@ -101,18 +83,21 @@ class GroupViews:
                 detail=f"Error updating group: {str(e)}",
             )
 
-    @router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
-    async def delete_group(self, group_id: str) -> None:
-        """Delete a group (soft delete)."""
+    @router.delete("/groups/{group_id}", response_model=StandardResponse, status_code=status.HTTP_200_OK)
+    async def delete_group(self, group_id: str) -> StandardResponse:
+        """Delete a group (only if the authenticated user is a member)."""
         try:
-            deleted = await self.controller.delete_group(group_id)
+            deleted = await self.controller.delete_group(group_id, self.current_user.sub)
             if not deleted:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Group {group_id} not found",
                 )
+            return StandardResponse(message="Group deleted successfully")
         except HTTPException:
             raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error deleting group {group_id}: {e}")
             raise HTTPException(
@@ -122,22 +107,24 @@ class GroupViews:
 
     @router.post(
         "/groups/{group_id}/users",
-        response_model=GroupResponse,
+        response_model=StandardResponse,
     )
     async def add_user_to_group(
         self, group_id: str, body: AddUserRequest
-    ) -> GroupResponse:
-        """Add a user to a group."""
+    ) -> StandardResponse:
+        """Add a user to a group (only if the authenticated user is a member)."""
         try:
-            result = await self.controller.add_user_to_group(group_id, body.user_id)
+            result = await self.controller.add_user_to_group(group_id, body.user_id, self.current_user.sub)
             if result is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Group {group_id} not found",
                 )
-            return result
+            return StandardResponse(message="User added to group successfully")
         except HTTPException:
             raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except ValueError as ve:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(ve)
@@ -151,22 +138,24 @@ class GroupViews:
 
     @router.delete(
         "/groups/{group_id}/users/{user_id}",
-        response_model=GroupResponse,
+        response_model=StandardResponse,
     )
     async def remove_user_from_group(
         self, group_id: str, user_id: str
-    ) -> GroupResponse:
-        """Remove a user from a group."""
+    ) -> StandardResponse:
+        """Remove a user from a group (only if the authenticated user is a member)."""
         try:
-            result = await self.controller.remove_user_from_group(group_id, user_id)
+            result = await self.controller.remove_user_from_group(group_id, user_id, self.current_user.sub)
             if result is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Group {group_id} not found",
                 )
-            return result
+            return StandardResponse(message="User removed from group successfully")
         except HTTPException:
             raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except ValueError as ve:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(ve)

@@ -32,6 +32,7 @@ def make_group_doc(group_id=None):
     return {
         "_id": oid,
         "group_name": "Viagem Europa 2026",
+        "creator_id": "uid1",
         "user_ids": ["uid1", "uid2"],
         "is_deleted": False,
         "created_at": datetime.now(timezone.utc),
@@ -43,6 +44,7 @@ def make_group_entity():
     return Group(
         id=str(ObjectId()),
         group_name="Viagem Europa 2026",
+        creator_id="uid1",
         user_ids=["uid1", "uid2"],
         is_deleted=False,
         created_at=datetime.now(timezone.utc),
@@ -70,7 +72,7 @@ class TestMongoGroupRepositoryDocumentConversion:
     def test_entity_to_document_without_id(self):
         # Arrange
         repo = MongoGroupRepository()
-        entity = Group(group_name="Test")
+        entity = Group(group_name="Test", creator_id="uid1")
 
         # Act
         doc = repo._entity_to_document(entity)
@@ -84,7 +86,7 @@ class TestMongoGroupRepositoryDocumentConversion:
         # Arrange
         repo = MongoGroupRepository()
         existing_id = str(ObjectId())
-        entity = Group(id=existing_id, group_name="Test")
+        entity = Group(id=existing_id, group_name="Test", creator_id="uid1")
 
         # Act
         doc = repo._entity_to_document(entity)

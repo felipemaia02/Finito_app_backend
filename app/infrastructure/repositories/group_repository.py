@@ -121,3 +121,18 @@ class MongoGroupRepository(IGroupRepository):
         except Exception as e:
             logger.error(f"Error checking group existence {id}: {e}")
             raise
+
+    async def get_by_user_id(self, user_id: str) -> List[Group]:
+        try:
+            collection = self._get_collection()
+            cursor = collection.find(
+                {"user_ids": user_id, "is_deleted": False}
+            ).sort("created_at", -1)
+            groups = []
+            async for doc in cursor:
+                groups.append(self._document_to_entity(doc))
+            logger.info(f"Retrieved {len(groups)} groups for user {user_id}")
+            return groups
+        except Exception as e:
+            logger.error(f"Error retrieving groups for user {user_id}: {e}")
+            raise

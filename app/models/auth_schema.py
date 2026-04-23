@@ -74,5 +74,6 @@ class TokenData(BaseModel):
     """Schema for token payload data."""
 
     sub: str = Field(..., description="Subject - typically user email")
+    user_id: Optional[str] = Field(None, description="User ID")
     exp: Optional[int] = Field(None, description="Expiration time")
     type: str = Field(default="access", description="Token type (access or refresh)")

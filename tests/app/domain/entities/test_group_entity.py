@@ -8,7 +8,7 @@ from app.domain.entities.group_entity import Group
 class TestGroupEntityCreation:
     def test_create_group_minimum_fields(self):
         # Arrange / Act
-        group = Group(group_name="Viagem")
+        group = Group(group_name="Viagem", creator_id="test_creator_id")
 
         # Assert
         assert group.group_name == "Viagem"
@@ -30,7 +30,7 @@ class TestGroupEntityCreation:
 
     def test_create_group_with_user_ids(self):
         # Arrange / Act
-        group = Group(group_name="Turma", user_ids=["id1", "id2", "id3"])
+        group = Group(group_name="Turma", creator_id="test_creator_id", user_ids=["id1", "id2", "id3"])
 
         # Assert
         assert len(group.user_ids) == 3
@@ -55,14 +55,14 @@ class TestGroupEntityValidation:
 
     def test_group_name_exactly_max_length(self):
         # Arrange / Act
-        group = Group(group_name="a" * 200)
+        group = Group(group_name="a" * 200, creator_id="test_creator_id")
 
         # Assert
         assert len(group.group_name) == 200
 
     def test_group_name_exactly_min_length(self):
         # Arrange / Act
-        group = Group(group_name="A")
+        group = Group(group_name="A", creator_id="test_creator_id")
 
         # Assert
         assert group.group_name == "A"
@@ -95,7 +95,7 @@ class TestGroupEntityUpdateTimestamp:
 class TestGroupEntityUserIds:
     def test_user_ids_default_empty_list(self):
         # Arrange / Act
-        group = Group(group_name="Teste")
+        group = Group(group_name="Teste", creator_id="test_creator_id")
 
         # Assert
         assert group.user_ids == []
@@ -103,8 +103,8 @@ class TestGroupEntityUserIds:
 
     def test_user_ids_are_independent_instances(self):
         # Arrange / Act — two different instances should not share the same list
-        group1 = Group(group_name="G1")
-        group2 = Group(group_name="G2")
+        group1 = Group(group_name="G1", creator_id="test_creator_id")
+        group2 = Group(group_name="G2", creator_id="test_creator_id")
         group1.user_ids.append("user1")
 
         # Assert
@@ -112,14 +112,14 @@ class TestGroupEntityUserIds:
 
     def test_soft_delete_flag_default_false(self):
         # Arrange / Act
-        group = Group(group_name="Teste")
+        group = Group(group_name="Teste", creator_id="test_creator_id")
 
         # Assert
         assert group.is_deleted is False
 
     def test_soft_delete_flag_can_be_set_true(self):
         # Arrange / Act
-        group = Group(group_name="Teste", is_deleted=True)
+        group = Group(group_name="Teste", creator_id="test_creator_id", is_deleted=True)
 
         # Assert
         assert group.is_deleted is True

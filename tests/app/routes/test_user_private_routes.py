@@ -66,7 +66,7 @@ class TestUserPrivateGetAllUsers:
         client, mock_repo = user_private_client
         mock_repo.get_all.return_value = []
 
-        response = client.get("/users/")
+        response = client.get("/api/v1/users/")
         assert response.status_code == 200
         assert response.json() == []
 
@@ -75,7 +75,7 @@ class TestUserPrivateGetAllUsers:
         user = make_user_response_obj()
         mock_repo.get_all.return_value = [user]
 
-        response = client.get("/users/")
+        response = client.get("/api/v1/users/")
         assert response.status_code == 200
         assert len(response.json()) == 1
 
@@ -83,14 +83,14 @@ class TestUserPrivateGetAllUsers:
         client, mock_repo = user_private_client
         mock_repo.get_all.return_value = []
 
-        response = client.get("/users/?skip=5&limit=20")
+        response = client.get("/api/v1/users/?skip=5&limit=20")
         assert response.status_code == 200
 
     def test_get_all_users_server_error(self, user_private_client):
         client, mock_repo = user_private_client
         mock_repo.get_all.side_effect = Exception("DB error")
 
-        response = client.get("/users/")
+        response = client.get("/api/v1/users/")
         assert response.status_code == 400
 
     def test_get_all_users_requires_auth(self, mock_app_dependencies):
@@ -99,7 +99,7 @@ class TestUserPrivateGetAllUsers:
         client = TestClient(mock_app_dependencies)
         client.headers.update({"X-API-Key": get_settings().api_key})
 
-        response = client.get("/users/")
+        response = client.get("/api/v1/users/")
         assert response.status_code in [401, 403, 422]
 
 
@@ -147,14 +147,14 @@ class TestUserPrivateGetUserByEmail:
         client, mock_repo = user_private_client
         mock_repo.get_by_email.return_value = None
 
-        response = client.get("/users/email/notfound@example.com")
+        response = client.get("/api/v1/users/email/notfound@example.com")
         assert response.status_code == 404
 
     def test_get_user_by_email_server_error(self, user_private_client):
         client, mock_repo = user_private_client
         mock_repo.get_by_email.side_effect = Exception("DB error")
 
-        response = client.get("/users/email/error@example.com")
+        response = client.get("/api/v1/users/email/error@example.com")
         assert response.status_code == 400
 
 

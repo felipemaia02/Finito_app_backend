@@ -86,3 +86,20 @@ class UserResponseWithoutPassword(BaseModel):
     class Config:
         populate_by_name = True
         from_attributes = True
+
+
+class UserPublicInfo(BaseModel):
+    """Minimal public user info: ID and email only."""
+
+    id: str = Field(..., description="Unique identifier")
+    email: str = Field(..., description="User's email address")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": "507f1f77bcf86cd799439011",
+                "email": "john@example.com",
+            }
+        }
