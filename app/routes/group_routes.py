@@ -9,6 +9,7 @@ from app.infrastructure.dependencies.group_dependencies import GroupDependencies
 from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_token
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
 from app.models.group_schema import GroupCreate, GroupUpdate, GroupResponse, AddUserRequest
+from app.models.auth_schema import TokenData
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -21,7 +22,7 @@ class GroupViews:
     """Class-based views for group operations."""
 
     controller: GroupController = Depends(GroupDependencies.get_controller)
-    current_user: str = Security(verify_oauth2_token)
+    current_user: TokenData = Security(verify_oauth2_token)
     api_key: str = Security(verify_api_key)
 
     @router.post(
@@ -32,7 +33,7 @@ class GroupViews:
     async def create_group(self, group_data: GroupCreate) -> GroupResponse:
         """Create a new group."""
         try:
-            return await self.controller.create_group(group_data)
+            return await self.controller.create_group(group_data, self.current_user.sub)
         except Exception as e:
             logger.error(f"Error creating group: {e}")
             raise HTTPException(

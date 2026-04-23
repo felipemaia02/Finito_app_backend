@@ -110,19 +110,58 @@ class TestGroupControllerBuildResponse:
 class TestGroupControllerCreateGroup:
     async def test_create_group_delegates_and_returns_response(self):
         # Arrange
-        group = make_group()
+        creator = make_user()
+        group = make_group(user_ids=[creator.id])
         group_repo = make_group_repo()
-        controller = GroupController(group_repo, make_user_repo())
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = creator
+        user_repo.get_by_id.return_value = creator
+        controller = GroupController(group_repo, user_repo)
 
         with patch.object(
             controller.create_group_use_case, "execute", new=AsyncMock(return_value=group)
         ):
             # Act
-            result = await controller.create_group(GroupCreate(group_name="Grupo"))
+            result = await controller.create_group(GroupCreate(group_name="Grupo"), creator_email="creator@example.com")
 
         # Assert
         assert isinstance(result, GroupResponse)
         assert result.group_name == group.group_name
+
+    async def test_create_group_passes_creator_user_id(self):
+        # Arrange
+        creator = make_user()
+        group = make_group(user_ids=[creator.id])
+        group_repo = make_group_repo()
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = creator
+        user_repo.get_by_id.return_value = creator
+        controller = GroupController(group_repo, user_repo)
+        execute_mock = AsyncMock(return_value=group)
+
+        with patch.object(controller.create_group_use_case, "execute", new=execute_mock):
+            # Act
+            await controller.create_group(GroupCreate(group_name="Grupo"), creator_email="creator@example.com")
+
+        # Assert — creator user id must be passed to use case
+        execute_mock.assert_called_once()
+        assert execute_mock.call_args[0][1] == creator.id
+
+    async def test_create_group_creator_not_found_passes_none(self):
+        # Arrange
+        group = make_group()
+        group_repo = make_group_repo()
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = None
+        controller = GroupController(group_repo, user_repo)
+        execute_mock = AsyncMock(return_value=group)
+
+        with patch.object(controller.create_group_use_case, "execute", new=execute_mock):
+            # Act
+            await controller.create_group(GroupCreate(group_name="Grupo"), creator_email="unknown@example.com")
+
+        # Assert — None passed when user not found
+        assert execute_mock.call_args[0][1] is None
 
 
 class TestGroupControllerGetAllGroups:
