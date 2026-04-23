@@ -11,19 +11,19 @@ class IOAuth2Service(ABC):
     @abstractmethod
     def hash_password(self, password: str) -> str:
         """Hash a password."""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify a password against its hash."""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def create_access_token(self, data: dict, expires_delta=None) -> str:
         """Create a JWT access token."""
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     def verify_token(self, token: str) -> Optional[TokenData]:
         """Verify and decode a JWT token."""
-        pass
+        pass  # pragma: no cover

@@ -1,0 +1,101 @@
+"""Group controller — orchestrates use cases and builds GroupResponse with populated users."""
+
+from typing import List, Optional
+from app.domain.interfaces.group_repository_interface import IGroupRepository
+from app.domain.interfaces.user_repository_interface import IUserRepository
+from app.domain.entities.group_entity import Group
+from app.models.group_schema import GroupCreate, GroupUpdate, GroupResponse
+from app.models.user_schema import UserResponse
+from app.domain.dtos.group_dtos import UpdateGroupInput, AddUserToGroupInput, RemoveUserFromGroupInput
+from app.use_cases.group.create_group import CreateGroupUseCase
+from app.use_cases.group.get_all_groups import GetAllGroupsUseCase
+from app.use_cases.group.get_group_by_id import GetGroupByIdUseCase
+from app.use_cases.group.update_group import UpdateGroupUseCase
+from app.use_cases.group.delete_group import DeleteGroupUseCase
+from app.use_cases.group.add_user_to_group import AddUserToGroupUseCase
+from app.use_cases.group.remove_user_from_group import RemoveUserFromGroupUseCase
+from app.infrastructure.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+class GroupController:
+    """Orchestrates group use cases and populates user data in responses."""
+
+    def __init__(
+        self,
+        group_repository: IGroupRepository,
+        user_repository: IUserRepository,
+    ):
+        self.user_repository = user_repository
+        self.create_group_use_case = CreateGroupUseCase(group_repository)
+        self.get_all_groups_use_case = GetAllGroupsUseCase(group_repository)
+        self.get_group_by_id_use_case = GetGroupByIdUseCase(group_repository)
+        self.update_group_use_case = UpdateGroupUseCase(group_repository)
+        self.delete_group_use_case = DeleteGroupUseCase(group_repository)
+        self.add_user_to_group_use_case = AddUserToGroupUseCase(group_repository)
+        self.remove_user_from_group_use_case = RemoveUserFromGroupUseCase(group_repository)
+
+    async def _build_response(self, group: Group) -> GroupResponse:
+        """Build GroupResponse with populated user objects from user_ids."""
+        users = []
+        for user_id in group.user_ids:
+            user = await self.user_repository.get_by_id(user_id)
+            if user:
+                users.append(UserResponse(**user.model_dump()))
+        return GroupResponse(
+            id=group.id,
+            group_name=group.group_name,
+            users=users,
+            created_at=group.created_at,
+            updated_at=group.updated_at,
+        )
+
+    async def create_group(self, group_data: GroupCreate) -> GroupResponse:
+        group = await self.create_group_use_case.execute(group_data)
+        return await self._build_response(group)
+
+    async def get_all_groups(
+        self, skip: int = 0, limit: int = 100
+    ) -> List[GroupResponse]:
+        groups = await self.get_all_groups_use_case.execute(skip=skip, limit=limit)
+        return [await self._build_response(g) for g in groups]
+
+    async def get_group_by_id(self, group_id: str) -> Optional[GroupResponse]:
+        group = await self.get_group_by_id_use_case.execute(group_id)
+        if group is None:
+            return None
+        return await self._build_response(group)
+
+    async def update_group(
+        self, group_id: str, group_data: GroupUpdate
+    ) -> Optional[GroupResponse]:
+        group = await self.update_group_use_case.execute(
+            UpdateGroupInput(group_id=group_id, group_data=group_data)
+        )
+        if group is None:
+            return None
+        return await self._build_response(group)
+
+    async def delete_group(self, group_id: str) -> bool:
+        return await self.delete_group_use_case.execute(group_id)
+
+    async def add_user_to_group(
+        self, group_id: str, user_id: str
+    ) -> Optional[GroupResponse]:
+        group = await self.add_user_to_group_use_case.execute(
+            AddUserToGroupInput(group_id=group_id, user_id=user_id)
+        )
+        if group is None:
+            return None
+        return await self._build_response(group)
+
+    async def remove_user_from_group(
+        self, group_id: str, user_id: str
+    ) -> Optional[GroupResponse]:
+        group = await self.remove_user_from_group_use_case.execute(
+            RemoveUserFromGroupInput(group_id=group_id, user_id=user_id)
+        )
+        if group is None:
+            return None
+        return await self._build_response(group)

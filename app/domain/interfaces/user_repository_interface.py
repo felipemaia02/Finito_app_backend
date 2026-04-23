@@ -26,7 +26,7 @@ class IUserRepository(BaseRepository[User]):
         Returns:
             List of active users
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def get_by_email(self, email: str) -> Optional[User]:
@@ -39,7 +39,7 @@ class IUserRepository(BaseRepository[User]):
         Returns:
             User entity if found, None otherwise
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def email_exists(self, email: str) -> bool:
@@ -52,4 +52,4 @@ class IUserRepository(BaseRepository[User]):
         Returns:
             True if email exists, False otherwise
         """
-        pass
+        pass  # pragma: no cover

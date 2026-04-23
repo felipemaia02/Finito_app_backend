@@ -194,6 +194,40 @@ class TestUserPrivateUpdateUser:
         response = client.put(f"/users/{user_id}", json=update_data)
         assert response.status_code in [400, 404]
 
+    def test_update_user_email_conflict_returns_400(self, user_private_client):
+        """Test ValueError from email conflict triggers 400 response."""
+        from datetime import date
+        from copy import deepcopy
+
+        client, mock_repo = user_private_client
+        user_id = str(ObjectId())
+
+        # Return a real User entity to avoid AttributeError on update_timestamp()
+        entity = User(
+            name="John Silva",
+            email="john@example.com",
+            password="$2b$12$abcdefghijklmnopqrstuvwxyz1234567890",
+            date_birth=date(1990, 5, 15),
+        )
+        entity.id = user_id
+
+        conflicting = User(
+            name="Other User",
+            email="taken@example.com",
+            password="$2b$12$abcdefghijklmnopqrstuvwxyz1234567890",
+            date_birth=date(1985, 3, 10),
+        )
+        conflicting.id = str(ObjectId())
+
+        mock_repo.get_by_id.return_value = entity
+        mock_repo.get_by_email.return_value = conflicting  # email conflict
+
+        update_data = {"email": "taken@example.com"}
+        response = client.put(f"/users/{user_id}", json=update_data)
+
+        # ValueError caught by route → 400
+        assert response.status_code == 400
+
     def test_update_user_server_error(self, user_private_client):
         client, mock_repo = user_private_client
         mock_repo.get_by_id.side_effect = Exception("DB error")

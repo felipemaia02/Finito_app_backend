@@ -84,3 +84,23 @@ class TestPasswordUtils:
             hashed = hash_password(password)
             assert verify_password(password, hashed) is True
             assert verify_password("wrong", hashed) is False
+
+    def test_hash_password_raises_on_bcrypt_error(self, mocker):
+        """Test that hash_password re-raises exception from bcrypt."""
+        # Arrange
+        mocker.patch("bcrypt.gensalt", side_effect=RuntimeError("bcrypt error"))
+
+        # Act / Assert
+        with pytest.raises(RuntimeError, match="bcrypt error"):
+            hash_password("any_password")
+
+    def test_verify_password_returns_false_on_exception(self, mocker):
+        """Test that verify_password returns False when bcrypt raises."""
+        # Arrange
+        mocker.patch("bcrypt.checkpw", side_effect=ValueError("invalid hash"))
+
+        # Act
+        result = verify_password("password", "invalid_hash")
+
+        # Assert
+        assert result is False

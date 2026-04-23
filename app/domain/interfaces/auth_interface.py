@@ -17,4 +17,4 @@ class IAuthService(ABC):
         Returns:
             True if valid, False otherwise
         """
-        pass
+        pass  # pragma: no cover

@@ -28,7 +28,7 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             The created entity with generated ID
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def get_by_id(self, id: str) -> Optional[T]:
@@ -41,7 +41,7 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             The entity if found, None otherwise
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[T]:
@@ -55,7 +55,7 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             List of entities
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def update(self, id: str, entity: T) -> Optional[T]:
@@ -69,7 +69,7 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             The updated entity if found, None otherwise
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def delete(self, id: str) -> bool:
@@ -82,7 +82,7 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             True if deleted, False if not found
         """
-        pass
+        pass  # pragma: no cover
 
     @abstractmethod
     async def exists(self, id: str) -> bool:
@@ -95,4 +95,4 @@ class BaseRepository(ABC, Generic[T]):
         Returns:
             True if exists, False otherwise
         """
-        pass
+        pass  # pragma: no cover

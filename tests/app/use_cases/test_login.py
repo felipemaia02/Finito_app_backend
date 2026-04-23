@@ -132,3 +132,33 @@ class TestLoginUseCase:
         # Act & Assert
         with pytest.raises(Exception, match="Database error"):
             await use_case.execute(login_data)
+
+    @pytest.mark.asyncio
+    async def test_login_value_error_is_propagated(self, mock_user_repository):
+        """Test that ValueError inside try block (e.g. token creation) is re-raised."""
+        # Arrange
+        login_data = LoginRequest(email="john@example.com", password="password123")
+
+        user = User(
+            id="507f1f77bcf86cd799439011",
+            name="John Silva",
+            email="john@example.com",
+            password="hashed",
+            date_birth=date(1990, 5, 15),
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+
+        mock_user_repository.get_by_email.return_value = user
+        use_case = LoginUseCase(mock_user_repository)
+
+        # Act & Assert
+        with patch("app.use_cases.auth.login.verify_password", return_value=True):
+            with patch.object(
+                use_case.oauth_service,
+                "create_token_pair",
+                side_effect=ValueError("token error"),
+            ):
+                with pytest.raises(ValueError, match="token error"):
+                    await use_case.execute(login_data)

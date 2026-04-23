@@ -231,6 +231,21 @@ class TestExpenseControllerUpdateExpense:
         assert result is None
 
     @pytest.mark.asyncio
+    async def test_update_expense_returns_none_logs_warning(self):
+        """Test that when use_case returns None the else branch (logger.warning) runs."""
+        mock_repo = make_async_mock_repo()
+        # Returning None from get_by_id causes the use_case to return None
+        mock_repo.get_by_id.return_value = None
+
+        controller = ExpenseController(mock_repo)
+
+        expense_data = ExpenseUpdate(amount_cents=5000)
+        result = await controller.update_expense(str(ObjectId()), expense_data)
+
+        # The else branch in controller.update_expense ran (logger.warning called)
+        assert result is None
+
+    @pytest.mark.asyncio
     async def test_update_expense_raises_on_error(self):
         mock_repo = make_async_mock_repo()
         mock_repo.get_by_id.return_value = make_expense_response()

@@ -1,7 +1,7 @@
 """Tests for api.py"""
 
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, AsyncMock
 from app.api import app
 
 
@@ -55,3 +55,51 @@ class TestAppStartupShutdown:
         """Test app structure is valid for running"""
         # Should be a valid ASGI app
         assert callable(app)
+
+
+class TestAppLifespan:
+    """Test app lifespan context manager."""
+
+    async def test_lifespan_startup_and_shutdown(self):
+        """Test the lifespan connects and disconnects the database."""
+        # Arrange
+        from app.api import lifespan
+
+        with patch(
+            "app.api.Database.connect", new_callable=AsyncMock
+        ) as mock_connect, patch(
+            "app.api.Database.disconnect", new_callable=AsyncMock
+        ) as mock_disconnect:
+            # Act
+            async with lifespan(app):
+                pass
+
+            # Assert
+            mock_connect.assert_awaited_once()
+            mock_disconnect.assert_awaited_once()
+
+
+class TestRootEndpoint:
+    """Test the root GET / endpoint."""
+
+    def test_root_endpoint_returns_200(self):
+        # Arrange
+        from fastapi.testclient import TestClient
+        from unittest.mock import patch, AsyncMock
+
+        with patch(
+            "app.infrastructure.database.database.Database.connect",
+            new_callable=AsyncMock,
+        ), patch(
+            "app.infrastructure.database.database.Database.disconnect",
+            new_callable=AsyncMock,
+        ):
+            client = TestClient(app, raise_server_exceptions=False)
+            # Act
+            response = client.get("/")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "message" in data
+        assert data["status"] == "running"

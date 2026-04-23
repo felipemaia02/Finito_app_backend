@@ -7,12 +7,15 @@ from bson import ObjectId
 
 from app.domain.entities.expense_entity import Expense
 from app.domain.entities.user_entity import User
+from app.domain.entities.group_entity import Group
 from app.domain.enums.expense_category_enum import ExpenseCategory
 from app.domain.enums.expense_type_enum import ExpenseType
 from app.models.expense_schema import ExpenseCreate, ExpenseUpdate, ExpenseResponse
 from app.models.user_schema import UserCreate, UserUpdate, UserResponse
+from app.models.group_schema import GroupCreate, GroupUpdate, GroupResponse
 from app.domain.interfaces.expense_repository_interface import IExpenseRepository
 from app.domain.interfaces.user_repository_interface import IUserRepository
+from app.domain.interfaces.group_repository_interface import IGroupRepository
 
 
 @pytest.fixture
@@ -128,6 +131,65 @@ def mock_user_repository() -> AsyncMock:
     """Provide a mocked user repository for testing."""
     mock = AsyncMock(spec=IUserRepository)
     return mock
+
+
+# ---------------------------------------------------------------------------
+# Group fixtures
+# ---------------------------------------------------------------------------
+
+GROUP_ID = str(ObjectId())
+USER_ID_1 = str(ObjectId())
+USER_ID_2 = str(ObjectId())
+
+
+@pytest.fixture
+def sample_group_data() -> dict:
+    """Provide sample group data for testing."""
+    return {
+        "id": GROUP_ID,
+        "group_name": "Viagem Europa 2026",
+        "user_ids": [USER_ID_1, USER_ID_2],
+        "is_deleted": False,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+
+
+@pytest.fixture
+def sample_group_entity(sample_group_data) -> Group:
+    """Provide sample group entity for testing."""
+    return Group(**sample_group_data)
+
+
+@pytest.fixture
+def sample_group_create() -> GroupCreate:
+    """Provide sample group creation data for testing."""
+    return GroupCreate(group_name="Viagem Europa 2026")
+
+
+@pytest.fixture
+def sample_group_update() -> GroupUpdate:
+    """Provide sample group update data for testing."""
+    return GroupUpdate(group_name="Viagem Europa 2027")
+
+
+@pytest.fixture
+def sample_group_response(sample_group_data, sample_user_data) -> GroupResponse:
+    """Provide sample group response model for testing."""
+    user_resp = UserResponse(**sample_user_data)
+    return GroupResponse(
+        id=sample_group_data["id"],
+        group_name=sample_group_data["group_name"],
+        users=[user_resp],
+        created_at=sample_group_data["created_at"],
+        updated_at=sample_group_data["updated_at"],
+    )
+
+
+@pytest.fixture
+def mock_group_repository() -> AsyncMock:
+    """Provide a mocked group repository for testing."""
+    return AsyncMock(spec=IGroupRepository)
 
 
 @pytest.fixture

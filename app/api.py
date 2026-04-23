@@ -10,6 +10,7 @@ from app.infrastructure.settings import get_settings
 from app.infrastructure.database.database import Database
 from app.infrastructure.logger import get_logger
 from app.routes.expense_routes import router as expense_router
+from app.routes.group_routes import router as group_router
 from app.routes.user_private_routes import router as user_private_router
 from app.routes.user_public_routes import router as user_public_router
 from app.routes.auth_routes import router as auth_router
@@ -34,7 +35,7 @@ async def lifespan(app: FastAPI):
         logger.info("Application shutdown - Disconnecting from database")
         await Database.disconnect()
         logger.info("Application shutdown - Database disconnected successfully")
-    except asyncio.exceptions.CancelledError:
+    except asyncio.exceptions.CancelledError:  # pragma: no cover
         logger.warning("Application lifespan cancelled")
 
 
@@ -54,6 +55,7 @@ app.add_middleware(
 )
 
 app.include_router(expense_router)
+app.include_router(group_router)
 app.include_router(user_public_router)
 app.include_router(user_private_router)
 app.include_router(auth_router)

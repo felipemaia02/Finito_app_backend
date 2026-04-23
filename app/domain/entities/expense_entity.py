@@ -88,4 +88,5 @@ class Expense(BaseEntity):
 
     def __str__(self) -> str:
         """String representation of expense."""
-        return f"{self.amount_decimal:.2f} - {self.category.value} ({self.spent_by})"
+        category_str = self.category if isinstance(self.category, str) else self.category.value
+        return f"{self.amount_decimal:.2f} - {category_str} ({self.spent_by})"

@@ -129,3 +129,22 @@ class TestUpdateUserUseCase:
         call_args = mock_user_repository.update.call_args[0][1]
         assert call_args.name == "New Name"
         assert call_args.email == original_email  # Email should remain unchanged
+
+    @pytest.mark.asyncio
+    async def test_update_user_repository_returns_none(self, sample_user_entity, mock_user_repository):
+        """Test update returns None when repository.update returns None."""
+        # Arrange
+        user_id = str(ObjectId())
+        update_data = UserUpdate(name="New Name")
+        input_data = UpdateUserInput(user_id=user_id, user_data=update_data)
+
+        mock_user_repository.get_by_id.return_value = sample_user_entity
+        mock_user_repository.update.return_value = None  # ← repo returns None
+        use_case = UpdateUserUseCase(mock_user_repository)
+
+        # Act
+        result = await use_case.execute(input_data)
+
+        # Assert
+        assert result is None
+        mock_user_repository.update.assert_called_once()

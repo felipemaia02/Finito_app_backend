@@ -67,3 +67,76 @@ class TestDependenciesStructure:
         # Both methods should be accessible from class without instance
         assert hasattr(ExpenseDependencies, "get_repository")
         assert hasattr(ExpenseDependencies, "get_controller")
+
+
+class TestGroupDependencies:
+    """Test GroupDependencies class."""
+
+    def test_get_group_repository_returns_repository(self):
+        # Arrange / Act
+        from app.infrastructure.dependencies.group_dependencies import GroupDependencies
+        from app.domain.interfaces.group_repository_interface import IGroupRepository
+
+        result = GroupDependencies.get_group_repository()
+
+        # Assert
+        assert isinstance(result, IGroupRepository)
+
+    def test_get_user_repository_returns_repository(self):
+        # Arrange / Act
+        from app.infrastructure.dependencies.group_dependencies import GroupDependencies
+        from app.domain.interfaces.user_repository_interface import IUserRepository
+
+        result = GroupDependencies.get_user_repository()
+
+        # Assert
+        assert isinstance(result, IUserRepository)
+
+    def test_get_controller_returns_controller(self):
+        # Arrange
+        from unittest.mock import MagicMock
+        from app.infrastructure.dependencies.group_dependencies import GroupDependencies
+        from app.controllers.group_controller import GroupController
+        from app.domain.interfaces.group_repository_interface import IGroupRepository
+        from app.domain.interfaces.user_repository_interface import IUserRepository
+
+        mock_group_repo = MagicMock(spec=IGroupRepository)
+        mock_user_repo = MagicMock(spec=IUserRepository)
+
+        # Act
+        controller = GroupDependencies.get_controller(
+            group_repository=mock_group_repo,
+            user_repository=mock_user_repo,
+        )
+
+        # Assert
+        assert isinstance(controller, GroupController)
+
+
+class TestUserDependencies:
+    """Test UserDependencies class."""
+
+    def test_get_repository_returns_repository(self):
+        # Arrange / Act
+        from app.infrastructure.dependencies.user_dependencies import UserDependencies
+        from app.domain.interfaces.user_repository_interface import IUserRepository
+
+        result = UserDependencies.get_repository()
+
+        # Assert
+        assert isinstance(result, IUserRepository)
+
+    def test_get_controller_returns_controller(self):
+        # Arrange
+        from unittest.mock import MagicMock
+        from app.infrastructure.dependencies.user_dependencies import UserDependencies
+        from app.controllers.user_controller import UserController
+        from app.domain.interfaces.user_repository_interface import IUserRepository
+
+        mock_repo = MagicMock(spec=IUserRepository)
+
+        # Act
+        controller = UserDependencies.get_controller(repository=mock_repo)
+
+        # Assert
+        assert isinstance(controller, UserController)
