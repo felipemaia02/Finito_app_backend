@@ -116,8 +116,8 @@ class ExpenseViews:
                 detail=f"Error updating expense: {str(e)}",
             )
 
-    @router.delete("/expenses/{expense_id}", response_model=StandardResponse, status_code=status.HTTP_200_OK)
-    async def delete_expense(self, expense_id: str) -> StandardResponse:
+    @router.delete("/expenses/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
+    async def delete_expense(self, expense_id: str) -> None:
         """Delete an expense (user must be a member of the expense's group)."""
         try:
             result = await self.controller.delete_expense(expense_id, self.current_user.sub)
@@ -126,7 +126,6 @@ class ExpenseViews:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Expense {expense_id} not found",
                 )
-            return StandardResponse(message="Expense deleted successfully")
         except HTTPException:
             raise
         except PermissionError as pe:

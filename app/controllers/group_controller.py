@@ -65,10 +65,11 @@ class GroupController:
         return await self._build_response(group)
 
     async def get_all_groups(
-        self, user_email: str, skip: int = 0, limit: int = 100
+        self, skip: int = 0, limit: int = 100
     ) -> List[GroupResponse]:
-        """Return only the groups the requesting user belongs to."""
-        return await self.get_groups_by_user_email(user_email)
+        """Return all groups."""
+        groups = await self.get_all_groups_use_case.execute(skip=skip, limit=limit)
+        return [await self._build_response(g) for g in groups]
 
     async def get_group_by_id(self, group_id: str, user_email: str) -> Optional[GroupResponse]:
         group = await self.get_group_by_id_use_case.execute(group_id)

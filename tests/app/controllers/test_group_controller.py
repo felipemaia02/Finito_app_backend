@@ -176,12 +176,12 @@ class TestGroupControllerGetAllGroups:
         controller = GroupController(make_group_repo(), user_repo)
 
         with patch.object(
-            controller.get_groups_by_user_id_use_case,
+            controller.get_all_groups_use_case,
             "execute",
             new=AsyncMock(return_value=groups),
         ):
             # Act
-            result = await controller.get_all_groups("test@example.com")
+            result = await controller.get_all_groups()
 
         # Assert
         assert len(result) == 2
@@ -196,12 +196,12 @@ class TestGroupControllerGetAllGroups:
         controller = GroupController(make_group_repo(), user_repo)
 
         with patch.object(
-            controller.get_groups_by_user_id_use_case,
+            controller.get_all_groups_use_case,
             "execute",
             new=AsyncMock(return_value=[]),
         ):
             # Act
-            result = await controller.get_all_groups("test@example.com")
+            result = await controller.get_all_groups()
 
         # Assert
         assert result == []

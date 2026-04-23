@@ -35,12 +35,48 @@ def expense_client(mock_app_dependencies, mock_expense_repository):
     from app.infrastructure.settings import get_settings
     from app.services.oauth2_service import OAuth2Service
     from app.infrastructure.dependencies.expense_dependencies import ExpenseDependencies
+    from unittest.mock import AsyncMock
+    from app.domain.interfaces.user_repository_interface import IUserRepository
+    from app.domain.interfaces.group_repository_interface import IGroupRepository
+    from app.domain.entities.user_entity import User
+    from app.domain.entities.group_entity import Group
+    from datetime import date
 
     oauth2_service = OAuth2Service()
     token, _, _ = oauth2_service.create_token_pair(email="test@example.com")
 
+    # Setup user and group mocks for _require_group_membership checks
+    user_id = str(ObjectId())
+    mock_user_repo = AsyncMock(spec=IUserRepository)
+    mock_group_repo = AsyncMock(spec=IGroupRepository)
+
+    test_user = User(
+        id=user_id,
+        name="Test User",
+        email="test@example.com",
+        password="$2b$12$hashedpassword",
+        date_birth=date(1990, 1, 1),
+    )
+    mock_user_repo.get_by_email.return_value = test_user
+
+    test_group = Group(
+        id="507f1f77bcf86cd799439012",
+        group_name="Test Group",
+        creator_id=user_id,
+        user_ids=[user_id],
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    mock_group_repo.get_by_id.return_value = test_group
+
     mock_app_dependencies.dependency_overrides[ExpenseDependencies.get_repository] = (
         lambda: mock_expense_repository
+    )
+    mock_app_dependencies.dependency_overrides[ExpenseDependencies.get_user_repository] = (
+        lambda: mock_user_repo
+    )
+    mock_app_dependencies.dependency_overrides[ExpenseDependencies.get_group_repository] = (
+        lambda: mock_group_repo
     )
 
     client = TestClient(mock_app_dependencies)
@@ -91,7 +127,7 @@ class TestExpenseRouteCreateExpense:
     def test_create_expense_missing_fields(self, expense_client):
         client, _ = expense_client
         response = client.post(
-            "/expenses", json={"group_id": "507f1f77bcf86cd799439012"}
+            "/api/v1/expenses", json={"group_id": "507f1f77bcf86cd799439012"}
         )
         assert response.status_code == 422
 
@@ -155,21 +191,21 @@ class TestExpenseRouteGetExpenseDetails:
         expense = make_expense_response_obj(expense_id)
         mock_repo.get_by_id.return_value = expense
 
-        response = client.get(f"/expenses/{expense_id}/details")
+        response = client.get(f"/api/v1/expenses/{expense_id}/details")
         assert response.status_code == 200
 
     def test_get_expense_details_not_found(self, expense_client):
         client, mock_repo = expense_client
         mock_repo.get_by_id.return_value = None
 
-        response = client.get(f"/expenses/{str(ObjectId())}/details")
+        response = client.get(f"/api/v1/expenses/{str(ObjectId())}/details")
         assert response.status_code == 404
 
     def test_get_expense_details_server_error(self, expense_client):
         client, mock_repo = expense_client
         mock_repo.get_by_id.side_effect = Exception("DB error")
 
-        response = client.get(f"/expenses/{str(ObjectId())}/details")
+        response = client.get(f"/api/v1/expenses/{str(ObjectId())}/details")
         assert response.status_code == 500
 
 
@@ -182,7 +218,7 @@ class TestExpenseRouteUpdateExpense:
         mock_repo.update.return_value = None
 
         update_data = {"amount_cents": 7000}
-        response = client.patch(f"/expenses/{str(ObjectId())}", json=update_data)
+        response = client.patch(f"/api/v1/expenses/{str(ObjectId())}", json=update_data)
         assert response.status_code == 404
 
     def test_update_expense_server_error(self, expense_client):
@@ -190,7 +226,7 @@ class TestExpenseRouteUpdateExpense:
         mock_repo.get_by_id.side_effect = Exception("DB error")
 
         update_data = {"amount_cents": 7000}
-        response = client.patch(f"/expenses/{str(ObjectId())}", json=update_data)
+        response = client.patch(f"/api/v1/expenses/{str(ObjectId())}", json=update_data)
         assert response.status_code == 500
 
 
@@ -198,24 +234,49 @@ class TestExpenseRouteDeleteExpense:
     """Test DELETE /expenses/{expense_id} endpoint."""
 
     def test_delete_expense_success(self, expense_client):
+        from app.domain.entities.expense_entity import Expense
+        from app.domain.enums.expense_category_enum import ExpenseCategory
+        from app.domain.enums.expense_type_enum import ExpenseType
+        from datetime import date
         client, mock_repo = expense_client
+        expense_id = str(ObjectId())
+        mock_repo.get_by_id.return_value = Expense(
+            id=expense_id,
+            group_id="507f1f77bcf86cd799439012",
+            amount_cents=5000,
+            category=ExpenseCategory.ENTERTAINMENT,
+            type_expense=ExpenseType.CREDIT_CARD,
+            spent_by="Test User",
+        )
         mock_repo.delete.return_value = True
 
-        response = client.delete(f"/expenses/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/expenses/{expense_id}")
         assert response.status_code == 204
 
     def test_delete_expense_not_found(self, expense_client):
         client, mock_repo = expense_client
         mock_repo.delete.return_value = False
 
-        response = client.delete(f"/expenses/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/expenses/{str(ObjectId())}")
         assert response.status_code == 404
 
     def test_delete_expense_server_error(self, expense_client):
+        from app.domain.entities.expense_entity import Expense
+        from app.domain.enums.expense_category_enum import ExpenseCategory
+        from app.domain.enums.expense_type_enum import ExpenseType
         client, mock_repo = expense_client
+        expense_id = str(ObjectId())
+        mock_repo.get_by_id.return_value = Expense(
+            id=expense_id,
+            group_id="507f1f77bcf86cd799439012",
+            amount_cents=5000,
+            category=ExpenseCategory.ENTERTAINMENT,
+            type_expense=ExpenseType.CREDIT_CARD,
+            spent_by="Test User",
+        )
         mock_repo.delete.side_effect = Exception("DB error")
 
-        response = client.delete(f"/expenses/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/expenses/{expense_id}")
         assert response.status_code == 500
 
 

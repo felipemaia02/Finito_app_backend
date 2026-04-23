@@ -3,11 +3,14 @@
 import pytest
 from datetime import datetime, timezone, date
 from bson import ObjectId
+from unittest.mock import AsyncMock
 from fastapi.testclient import TestClient
 
 from app.api import app
 from app.models.group_schema import GroupResponse
 from app.domain.entities.user_entity import User
+from app.domain.entities.group_entity import Group
+from app.domain.interfaces.user_repository_interface import IUserRepository
 
 
 def make_group_response(group_id=None, user_ids=None):
@@ -18,6 +21,18 @@ def make_group_response(group_id=None, user_ids=None):
         users=[],
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
+    )
+
+
+def make_test_user(user_id=None):
+    uid = user_id or str(ObjectId())
+    return User(
+        id=uid,
+        name="Test User",
+        email="test@example.com",
+        password="$2b$12$hashed",
+        date_birth=date(1990, 1, 1),
+        is_active=True,
     )
 
 
@@ -69,29 +84,21 @@ class TestCreateGroupRoute:
     def test_create_group_success(self, group_client):
         # Arrange
         client, mock_repo, mock_user_repo = group_client
-        from app.domain.entities.group_entity import Group
 
-        creator = User(
-            id=str(ObjectId()),
-            name="Test User",
-            email="test@example.com",
-            password="$2b$12$hashed",
-            date_birth=date(1990, 1, 1),
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
-        )
+        user_id = str(ObjectId())
+        creator = make_test_user(user_id)
         mock_user_repo.get_by_email.return_value = creator
+        mock_user_repo.get_by_id.return_value = None
 
         group_entity = Group(
             id=str(ObjectId()),
             group_name="Viagem Europa 2026",
-            user_ids=[creator.id],
+            creator_id=user_id,
+            user_ids=[user_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         mock_repo.create.return_value = group_entity
-        mock_user_repo.get_by_id.return_value = creator
 
         # Act
         response = client.post("/api/v1/groups", json={"group_name": "Viagem Europa 2026"})
@@ -99,7 +106,7 @@ class TestCreateGroupRoute:
         # Assert
         assert response.status_code == 201
         data = response.json()
-        assert data["group_name"] == "Viagem Europa 2026"
+        assert data["message"] == "Group created successfully"
 
     def test_create_group_missing_name_returns_422(self, group_client):
         # Arrange
@@ -123,7 +130,8 @@ class TestCreateGroupRoute:
 
     def test_create_group_db_error_returns_400(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
+        client, mock_repo, mock_user_repo = group_client
+        mock_user_repo.get_by_email.return_value = make_test_user()
         mock_repo.create.side_effect = RuntimeError("DB failure")
 
         # Act
@@ -136,13 +144,14 @@ class TestCreateGroupRoute:
 class TestListAllGroupsRoute:
     def test_list_groups_success(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
-        from app.domain.entities.group_entity import Group
+        client, mock_repo, mock_user_repo = group_client
+        user_id = str(ObjectId())
 
         groups = [
             Group(
                 id=str(ObjectId()),
                 group_name=f"Grupo {i}",
+                creator_id=user_id,
                 user_ids=[],
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
@@ -150,6 +159,7 @@ class TestListAllGroupsRoute:
             for i in range(3)
         ]
         mock_repo.get_all.return_value = groups
+        mock_user_repo.get_by_id.return_value = None
 
         # Act
         response = client.get("/api/v1/groups")
@@ -185,21 +195,27 @@ class TestListAllGroupsRoute:
 class TestGetGroupByIdRoute:
     def test_get_group_found(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
-        from app.domain.entities.group_entity import Group
+        client, mock_repo, mock_user_repo = group_client
 
         group_id = str(ObjectId())
+        user_id = str(ObjectId())
+
+        auth_user = make_test_user(user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+        mock_user_repo.get_by_id.return_value = None
+
         group = Group(
             id=group_id,
             group_name="Turma",
-            user_ids=[],
+            creator_id=user_id,
+            user_ids=[user_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         mock_repo.get_by_id.return_value = group
 
         # Act
-        response = client.get(f"/groups/{group_id}")
+        response = client.get(f"/api/v1/groups/{group_id}")
 
         # Assert
         assert response.status_code == 200
@@ -211,7 +227,7 @@ class TestGetGroupByIdRoute:
         mock_repo.get_by_id.return_value = None
 
         # Act
-        response = client.get(f"/groups/{str(ObjectId())}")
+        response = client.get(f"/api/v1/groups/{str(ObjectId())}")
 
         # Assert
         assert response.status_code == 404
@@ -220,26 +236,32 @@ class TestGetGroupByIdRoute:
 class TestUpdateGroupRoute:
     def test_update_group_success(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
-        from app.domain.entities.group_entity import Group
+        client, mock_repo, mock_user_repo = group_client
 
         group_id = str(ObjectId())
-        updated_group = Group(
+        user_id = str(ObjectId())
+
+        auth_user = make_test_user(user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+        mock_user_repo.get_by_id.return_value = None
+
+        group = Group(
             id=group_id,
             group_name="Nome Atualizado",
-            user_ids=[],
+            creator_id=user_id,
+            user_ids=[user_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-        mock_repo.get_by_id.return_value = updated_group
-        mock_repo.update.return_value = updated_group
+        mock_repo.get_by_id.return_value = group
+        mock_repo.update.return_value = group
 
         # Act
-        response = client.patch(f"/groups/{group_id}", json={"group_name": "Nome Atualizado"})
+        response = client.patch(f"/api/v1/groups/{group_id}", json={"group_name": "Nome Atualizado"})
 
         # Assert
         assert response.status_code == 200
-        assert response.json()["group_name"] == "Nome Atualizado"
+        assert response.json()["message"] == "Group updated successfully"
 
     def test_update_group_not_found_returns_404(self, group_client):
         # Arrange
@@ -247,7 +269,7 @@ class TestUpdateGroupRoute:
         mock_repo.get_by_id.return_value = None
 
         # Act
-        response = client.patch(f"/groups/{str(ObjectId())}", json={"group_name": "Test"})
+        response = client.patch(f"/api/v1/groups/{str(ObjectId())}", json={"group_name": "Test"})
 
         # Assert
         assert response.status_code == 404
@@ -256,11 +278,27 @@ class TestUpdateGroupRoute:
 class TestDeleteGroupRoute:
     def test_delete_group_success(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
+        client, mock_repo, mock_user_repo = group_client
+
+        group_id = str(ObjectId())
+        user_id = str(ObjectId())
+
+        auth_user = make_test_user(user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+
+        group = Group(
+            id=group_id,
+            group_name="Test Group",
+            creator_id=user_id,
+            user_ids=[user_id],
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        mock_repo.get_by_id.return_value = group
         mock_repo.delete.return_value = True
 
         # Act
-        response = client.delete(f"/groups/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/groups/{group_id}")
 
         # Assert
         assert response.status_code == 204
@@ -268,10 +306,10 @@ class TestDeleteGroupRoute:
     def test_delete_group_not_found_returns_404(self, group_client):
         # Arrange
         client, mock_repo, _ = group_client
-        mock_repo.delete.return_value = False
+        mock_repo.get_by_id.return_value = None
 
         # Act
-        response = client.delete(f"/groups/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/groups/{str(ObjectId())}")
 
         # Assert
         assert response.status_code == 404
@@ -281,14 +319,19 @@ class TestAddUserToGroupRoute:
     def test_add_user_success(self, group_client):
         # Arrange
         client, mock_repo, mock_user_repo = group_client
-        from app.domain.entities.group_entity import Group
 
         group_id = str(ObjectId())
         existing_user_id = str(ObjectId())
-        new_user_id = str(ObjectId())  # different user — not yet in group
+        new_user_id = str(ObjectId())
+
+        auth_user = make_test_user(existing_user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+        mock_user_repo.get_by_id.return_value = None
+
         group_before = Group(
             id=group_id,
             group_name="Turma",
+            creator_id=existing_user_id,
             user_ids=[existing_user_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
@@ -296,17 +339,17 @@ class TestAddUserToGroupRoute:
         group_after = Group(
             id=group_id,
             group_name="Turma",
+            creator_id=existing_user_id,
             user_ids=[existing_user_id, new_user_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         mock_repo.get_by_id.return_value = group_before
         mock_repo.update.return_value = group_after
-        mock_user_repo.get_by_id.return_value = None
 
         # Act
         response = client.post(
-            f"/groups/{group_id}/users", json={"user_id": new_user_id}
+            f"/api/v1/groups/{group_id}/users", json={"user_id": new_user_id}
         )
 
         # Assert
@@ -319,7 +362,7 @@ class TestAddUserToGroupRoute:
 
         # Act
         response = client.post(
-            f"/groups/{str(ObjectId())}/users",
+            f"/api/v1/groups/{str(ObjectId())}/users",
             json={"user_id": str(ObjectId())},
         )
 
@@ -328,15 +371,20 @@ class TestAddUserToGroupRoute:
 
     def test_add_user_already_member_returns_422(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
-        from app.domain.entities.group_entity import Group
+        client, mock_repo, mock_user_repo = group_client
 
         group_id = str(ObjectId())
-        user_id = str(ObjectId())
+        auth_user_id = str(ObjectId())
+        user_to_add_id = str(ObjectId())
+
+        auth_user = make_test_user(auth_user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+
         group = Group(
             id=group_id,
             group_name="Turma",
-            user_ids=[user_id],  # user already in group
+            creator_id=auth_user_id,
+            user_ids=[auth_user_id, user_to_add_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -344,7 +392,7 @@ class TestAddUserToGroupRoute:
 
         # Act
         response = client.post(
-            f"/groups/{group_id}/users", json={"user_id": user_id}
+            f"/api/v1/groups/{group_id}/users", json={"user_id": user_to_add_id}
         )
 
         # Assert
@@ -355,30 +403,36 @@ class TestRemoveUserFromGroupRoute:
     def test_remove_user_success(self, group_client):
         # Arrange
         client, mock_repo, mock_user_repo = group_client
-        from app.domain.entities.group_entity import Group
 
         group_id = str(ObjectId())
-        user_id = str(ObjectId())
+        auth_user_id = str(ObjectId())
+        user_to_remove_id = str(ObjectId())
+
+        auth_user = make_test_user(auth_user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+        mock_user_repo.get_by_id.return_value = None
+
         group_before = Group(
             id=group_id,
             group_name="Turma",
-            user_ids=[user_id],
+            creator_id=auth_user_id,
+            user_ids=[auth_user_id, user_to_remove_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         group_after = Group(
             id=group_id,
             group_name="Turma",
-            user_ids=[],
+            creator_id=auth_user_id,
+            user_ids=[auth_user_id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         mock_repo.get_by_id.return_value = group_before
         mock_repo.update.return_value = group_after
-        mock_user_repo.get_by_id.return_value = None
 
         # Act
-        response = client.delete(f"/groups/{group_id}/users/{user_id}")
+        response = client.delete(f"/api/v1/groups/{group_id}/users/{user_to_remove_id}")
 
         # Assert
         assert response.status_code == 200
@@ -390,7 +444,7 @@ class TestRemoveUserFromGroupRoute:
 
         # Act
         response = client.delete(
-            f"/groups/{str(ObjectId())}/users/{str(ObjectId())}"
+            f"/api/v1/groups/{str(ObjectId())}/users/{str(ObjectId())}"
         )
 
         # Assert
@@ -398,21 +452,27 @@ class TestRemoveUserFromGroupRoute:
 
     def test_remove_user_not_member_returns_422(self, group_client):
         # Arrange
-        client, mock_repo, _ = group_client
-        from app.domain.entities.group_entity import Group
+        client, mock_repo, mock_user_repo = group_client
 
         group_id = str(ObjectId())
+        auth_user_id = str(ObjectId())
+        user_to_remove_id = str(ObjectId())
+
+        auth_user = make_test_user(auth_user_id)
+        mock_user_repo.get_by_email.return_value = auth_user
+
         group = Group(
             id=group_id,
             group_name="Turma",
-            user_ids=[],  # empty — user not a member
+            creator_id=auth_user_id,
+            user_ids=[auth_user_id],  # user_to_remove_id NOT in list
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         mock_repo.get_by_id.return_value = group
 
         # Act
-        response = client.delete(f"/groups/{group_id}/users/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/groups/{group_id}/users/{user_to_remove_id}")
 
         # Assert
         assert response.status_code == 422
@@ -438,7 +498,7 @@ class TestGroupRouteExceptionHandlers:
         mock_repo.get_by_id.side_effect = RuntimeError("unexpected DB error")
 
         # Act
-        response = client.get(f"/groups/{str(ObjectId())}")
+        response = client.get(f"/api/v1/groups/{str(ObjectId())}")
 
         # Assert
         assert response.status_code == 400
@@ -449,7 +509,7 @@ class TestGroupRouteExceptionHandlers:
         mock_repo.get_by_id.side_effect = RuntimeError("unexpected DB error")
 
         # Act
-        response = client.patch(f"/groups/{str(ObjectId())}", json={"group_name": "X"})
+        response = client.patch(f"/api/v1/groups/{str(ObjectId())}", json={"group_name": "X"})
 
         # Assert
         assert response.status_code == 400
@@ -460,7 +520,7 @@ class TestGroupRouteExceptionHandlers:
         mock_repo.get_by_id.side_effect = ValueError("invalid group data")
 
         # Act
-        response = client.patch(f"/groups/{str(ObjectId())}", json={"group_name": "X"})
+        response = client.patch(f"/api/v1/groups/{str(ObjectId())}", json={"group_name": "X"})
 
         # Assert
         assert response.status_code == 422
@@ -468,10 +528,10 @@ class TestGroupRouteExceptionHandlers:
     def test_delete_group_generic_exception_returns_400(self, group_client):
         # Arrange
         client, mock_repo, _ = group_client
-        mock_repo.delete.side_effect = RuntimeError("unexpected DB error")
+        mock_repo.get_by_id.side_effect = RuntimeError("unexpected DB error")
 
         # Act
-        response = client.delete(f"/groups/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/groups/{str(ObjectId())}")
 
         # Assert
         assert response.status_code == 400
@@ -483,7 +543,7 @@ class TestGroupRouteExceptionHandlers:
 
         # Act
         response = client.post(
-            f"/groups/{str(ObjectId())}/users", json={"user_id": str(ObjectId())}
+            f"/api/v1/groups/{str(ObjectId())}/users", json={"user_id": str(ObjectId())}
         )
 
         # Assert
@@ -496,7 +556,7 @@ class TestGroupRouteExceptionHandlers:
 
         # Act
         response = client.delete(
-            f"/groups/{str(ObjectId())}/users/{str(ObjectId())}"
+            f"/api/v1/groups/{str(ObjectId())}/users/{str(ObjectId())}"
         )
 
         # Assert

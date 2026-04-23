@@ -112,7 +112,7 @@ class TestUserPrivateGetUser:
         user = make_user_response_obj(user_id)
         mock_repo.get_by_id.return_value = user
 
-        response = client.get(f"/users/{user_id}")
+        response = client.get(f"/api/v1/users/{user_id}")
         assert response.status_code == 200
         assert response.json()["id"] == user_id
 
@@ -120,14 +120,14 @@ class TestUserPrivateGetUser:
         client, mock_repo = user_private_client
         mock_repo.get_by_id.return_value = None
 
-        response = client.get(f"/users/{str(ObjectId())}")
+        response = client.get(f"/api/v1/users/{str(ObjectId())}")
         assert response.status_code == 404
 
     def test_get_user_server_error(self, user_private_client):
         client, mock_repo = user_private_client
         mock_repo.get_by_id.side_effect = Exception("DB error")
 
-        response = client.get(f"/users/{str(ObjectId())}")
+        response = client.get(f"/api/v1/users/{str(ObjectId())}")
         assert response.status_code == 400
 
 
@@ -140,7 +140,7 @@ class TestUserPrivateGetUserByEmail:
         user = make_user_response_obj()
         mock_repo.get_by_email.return_value = user
 
-        response = client.get(f"/users/email/{email}")
+        response = client.get(f"/api/v1/users/email/{email}")
         assert response.status_code == 200
 
     def test_get_user_by_email_not_found(self, user_private_client):
@@ -171,7 +171,7 @@ class TestUserPrivateUpdateUser:
         mock_repo.update.return_value = entity
 
         update_data = {"name": "Updated Name"}
-        response = client.put(f"/users/{user_id}", json=update_data)
+        response = client.put(f"/api/v1/users/{user_id}", json=update_data)
         assert response.status_code == 200
 
     def test_update_user_not_found(self, user_private_client):
@@ -180,7 +180,7 @@ class TestUserPrivateUpdateUser:
         mock_repo.update.return_value = None
 
         update_data = {"name": "Updated Name"}
-        response = client.put(f"/users/{str(ObjectId())}", json=update_data)
+        response = client.put(f"/api/v1/users/{str(ObjectId())}", json=update_data)
         assert response.status_code == 404
 
     def test_update_user_value_error(self, user_private_client):
@@ -191,7 +191,7 @@ class TestUserPrivateUpdateUser:
         mock_repo.email_exists.return_value = True
 
         update_data = {"email": "taken@example.com"}
-        response = client.put(f"/users/{user_id}", json=update_data)
+        response = client.put(f"/api/v1/users/{user_id}", json=update_data)
         assert response.status_code in [400, 404]
 
     def test_update_user_email_conflict_returns_400(self, user_private_client):
@@ -223,7 +223,7 @@ class TestUserPrivateUpdateUser:
         mock_repo.get_by_email.return_value = conflicting  # email conflict
 
         update_data = {"email": "taken@example.com"}
-        response = client.put(f"/users/{user_id}", json=update_data)
+        response = client.put(f"/api/v1/users/{user_id}", json=update_data)
 
         # ValueError caught by route → 400
         assert response.status_code == 400
@@ -233,7 +233,7 @@ class TestUserPrivateUpdateUser:
         mock_repo.get_by_id.side_effect = Exception("DB error")
 
         update_data = {"name": "Updated Name"}
-        response = client.put(f"/users/{str(ObjectId())}", json=update_data)
+        response = client.put(f"/api/v1/users/{str(ObjectId())}", json=update_data)
         assert response.status_code == 400
 
 
@@ -244,19 +244,19 @@ class TestUserPrivateDeleteUser:
         client, mock_repo = user_private_client
         mock_repo.delete.return_value = True
 
-        response = client.delete(f"/users/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/users/{str(ObjectId())}")
         assert response.status_code == 204
 
     def test_delete_user_not_found(self, user_private_client):
         client, mock_repo = user_private_client
         mock_repo.delete.return_value = False
 
-        response = client.delete(f"/users/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/users/{str(ObjectId())}")
         assert response.status_code == 404
 
     def test_delete_user_server_error(self, user_private_client):
         client, mock_repo = user_private_client
         mock_repo.delete.side_effect = Exception("DB error")
 
-        response = client.delete(f"/users/{str(ObjectId())}")
+        response = client.delete(f"/api/v1/users/{str(ObjectId())}")
         assert response.status_code == 400
