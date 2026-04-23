@@ -1,5 +1,6 @@
 """API Key authentication service implementation."""
 
+import secrets
 from app.domain.interfaces.auth_interface import IAuthService
 from app.infrastructure.settings import get_settings
 from app.infrastructure.logger import get_logger
@@ -16,7 +17,7 @@ class APIKeyAuthService(IAuthService):
 
     async def validate_api_key(self, api_key: str) -> bool:
         """
-        Validate an API key by comparing with settings.
+        Validate an API key using constant-time comparison to prevent timing attacks.
 
         Args:
             api_key: The API key to validate
@@ -25,10 +26,10 @@ class APIKeyAuthService(IAuthService):
             True if the key matches settings.api_key, False otherwise
         """
         logger.info("Validating API key")
-        is_valid = api_key == self.settings.api_key
+        is_valid = secrets.compare_digest(api_key, self.settings.api_key)
 
         if not is_valid:
-            logger.warning(f"Invalid API key attempt: {api_key[:10]}...")
+            logger.warning("Invalid API key attempt")
         else:
             logger.debug("API key validated successfully")
 

@@ -3,7 +3,23 @@
 from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from app.models.user_schema import UserResponse
+
+
+class GroupMemberResponse(BaseModel):
+    """Minimal user representation inside a group — only non-sensitive fields."""
+
+    id: str = Field(..., description="Unique identifier")
+    name: str = Field(..., description="User's full name")
+
+    class Config:
+        populate_by_name = True
+        from_attributes = True
+        json_schema_extra = {
+            "example": {
+                "id": "507f1f77bcf86cd799439012",
+                "name": "John Silva",
+            }
+        }
 
 
 class GroupCreate(BaseModel):
@@ -54,7 +70,7 @@ class GroupResponse(BaseModel):
 
     id: str = Field(..., description="Unique identifier")
     group_name: str = Field(..., description="Name of the group")
-    users: List[UserResponse] = Field(
+    users: List[GroupMemberResponse] = Field(
         default_factory=list, description="List of users belonging to this group"
     )
     created_at: datetime = Field(..., description="Creation timestamp")

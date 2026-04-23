@@ -21,6 +21,9 @@ class Group(BaseEntity):
     group_name: str = Field(
         ..., min_length=1, max_length=200, description="Name of the group"
     )
+    creator_id: str = Field(
+        ..., min_length=1, description="User ID of the group creator"
+    )
     user_ids: List[str] = Field(
         default_factory=list, description="List of user IDs belonging to this group"
     )
@@ -32,6 +35,7 @@ class Group(BaseEntity):
             "example": {
                 "id": "507f1f77bcf86cd799439011",
                 "group_name": "Viagem Europa 2026",
+                "creator_id": "507f1f77bcf86cd799439012",
                 "user_ids": [
                     "507f1f77bcf86cd799439012",
                     "507f1f77bcf86cd799439013",

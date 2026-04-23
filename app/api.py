@@ -54,12 +54,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(expense_router)
-app.include_router(group_router)
-app.include_router(user_public_router)
-app.include_router(user_private_router)
-app.include_router(auth_router)
-app.include_router(health_router)
+app.include_router(expense_router, prefix=settings.api_v1_str)
+app.include_router(group_router, prefix=settings.api_v1_str)
+app.include_router(user_public_router, prefix=settings.api_v1_str)
+app.include_router(user_private_router, prefix=settings.api_v1_str)
+app.include_router(auth_router, prefix=settings.api_v1_str)
+app.include_router(health_router, prefix=settings.api_v1_str)
 
 
 @app.get("/")

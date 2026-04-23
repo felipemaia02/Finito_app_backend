@@ -1,7 +1,7 @@
-"""Tests for controllers/expense_controller.py"""
+﻿"""Tests for controllers/expense_controller.py"""
 
 import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock, patch
 from datetime import datetime, timezone
 from bson import ObjectId
 from app.controllers.expense_controller import ExpenseController
@@ -16,8 +16,30 @@ def make_mock_repo():
     return MagicMock(spec=IExpenseRepository)
 
 
+def make_mock_group_repo():
+    from unittest.mock import MagicMock
+    from app.domain.interfaces.group_repository_interface import IGroupRepository
+    return MagicMock(spec=IGroupRepository)
+
+
+def make_mock_user_repo():
+    from unittest.mock import MagicMock
+    from app.domain.interfaces.user_repository_interface import IUserRepository
+    return MagicMock(spec=IUserRepository)
+
+
 def make_async_mock_repo():
     return AsyncMock(spec=IExpenseRepository)
+
+
+def make_async_mock_group_repo():
+    from app.domain.interfaces.group_repository_interface import IGroupRepository
+    return AsyncMock(spec=IGroupRepository)
+
+
+def make_async_mock_user_repo():
+    from app.domain.interfaces.user_repository_interface import IUserRepository
+    return AsyncMock(spec=IUserRepository)
 
 
 def make_expense_response():
@@ -42,17 +64,17 @@ class TestExpenseControllerInitialization:
 
     def test_controller_creation(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert controller is not None
 
     def test_controller_stores_repository(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert controller.repository == mock_repo
 
     def test_controller_has_all_use_cases(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert controller.create_expense_use_case is not None
         assert controller.get_all_expenses_use_case is not None
         assert controller.get_expense_by_id_use_case is not None
@@ -66,37 +88,37 @@ class TestExpenseControllerMethods:
 
     def test_controller_has_create_expense_method(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert hasattr(controller, "create_expense")
 
     def test_controller_has_get_all_expenses_method(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert hasattr(controller, "get_all_expenses")
 
     def test_controller_has_get_expense_by_id_method(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert hasattr(controller, "get_expense_by_id")
 
     def test_controller_has_update_expense_method(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert hasattr(controller, "update_expense")
 
     def test_controller_has_delete_expense_method(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert hasattr(controller, "delete_expense")
 
     def test_controller_has_get_amounts_and_types_method(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert hasattr(controller, "get_amounts_and_types")
 
     def test_controller_methods_are_callable(self):
         mock_repo = make_mock_repo()
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
         assert callable(controller.create_expense)
         assert callable(controller.get_all_expenses)
         assert callable(controller.get_expense_by_id)
@@ -126,7 +148,7 @@ class TestExpenseControllerCreateExpense:
         expense_entity.id = str(ObjectId())
         mock_repo.create.return_value = expense_entity
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
         expense_data = ExpenseCreate(
             group_id="507f1f77bcf86cd799439012",
@@ -136,7 +158,8 @@ class TestExpenseControllerCreateExpense:
             spent_by="John Doe",
         )
 
-        result = await controller.create_expense(expense_data)
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            result = await controller.create_expense(expense_data, "test@example.com")
         assert result is not None
 
     @pytest.mark.asyncio
@@ -144,7 +167,7 @@ class TestExpenseControllerCreateExpense:
         mock_repo = make_async_mock_repo()
         mock_repo.create.side_effect = Exception("DB error")
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
         expense_data = ExpenseCreate(
             group_id="507f1f77bcf86cd799439012",
@@ -154,8 +177,9 @@ class TestExpenseControllerCreateExpense:
             spent_by="John Doe",
         )
 
-        with pytest.raises(Exception):
-            await controller.create_expense(expense_data)
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            with pytest.raises(Exception):
+                await controller.create_expense(expense_data, "test@example.com")
 
 
 class TestExpenseControllerGetAllExpenses:
@@ -166,8 +190,9 @@ class TestExpenseControllerGetAllExpenses:
         mock_repo = make_async_mock_repo()
         mock_repo.get_all.return_value = []
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.get_all_expenses("507f1f77bcf86cd799439012")
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            result = await controller.get_all_expenses("507f1f77bcf86cd799439012", "test@example.com")
         assert result == []
 
     @pytest.mark.asyncio
@@ -175,10 +200,11 @@ class TestExpenseControllerGetAllExpenses:
         mock_repo = make_async_mock_repo()
         mock_repo.get_all.return_value = []
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.get_all_expenses(
-            "507f1f77bcf86cd799439012", skip=5, limit=20
-        )
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            result = await controller.get_all_expenses(
+                "507f1f77bcf86cd799439012", "test@example.com", skip=5, limit=20
+            )
         assert isinstance(result, list)
 
     @pytest.mark.asyncio
@@ -186,10 +212,11 @@ class TestExpenseControllerGetAllExpenses:
         mock_repo = make_async_mock_repo()
         mock_repo.get_all.side_effect = Exception("DB error")
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
-        with pytest.raises(Exception):
-            await controller.get_all_expenses("507f1f77bcf86cd799439012")
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            with pytest.raises(Exception):
+                await controller.get_all_expenses("507f1f77bcf86cd799439012", "test@example.com")
 
 
 class TestExpenseControllerGetExpenseById:
@@ -200,8 +227,8 @@ class TestExpenseControllerGetExpenseById:
         mock_repo = make_async_mock_repo()
         mock_repo.get_by_id.return_value = None
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.get_expense_by_id(str(ObjectId()))
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        result = await controller.get_expense_by_id(str(ObjectId()), "test@example.com")
         assert result is None
 
     @pytest.mark.asyncio
@@ -209,10 +236,10 @@ class TestExpenseControllerGetExpenseById:
         mock_repo = make_async_mock_repo()
         mock_repo.get_by_id.side_effect = Exception("DB error")
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
         with pytest.raises(Exception):
-            await controller.get_expense_by_id(str(ObjectId()))
+            await controller.get_expense_by_id(str(ObjectId()), "test@example.com")
 
 
 class TestExpenseControllerUpdateExpense:
@@ -224,10 +251,10 @@ class TestExpenseControllerUpdateExpense:
         mock_repo.get_by_id.return_value = None
         mock_repo.update.return_value = None
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
         expense_data = ExpenseUpdate(amount_cents=6000)
-        result = await controller.update_expense(str(ObjectId()), expense_data)
+        result = await controller.update_expense(str(ObjectId()), expense_data, "test@example.com")
         assert result is None
 
     @pytest.mark.asyncio
@@ -237,10 +264,10 @@ class TestExpenseControllerUpdateExpense:
         # Returning None from get_by_id causes the use_case to return None
         mock_repo.get_by_id.return_value = None
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
         expense_data = ExpenseUpdate(amount_cents=5000)
-        result = await controller.update_expense(str(ObjectId()), expense_data)
+        result = await controller.update_expense(str(ObjectId()), expense_data, "test@example.com")
 
         # The else branch in controller.update_expense ran (logger.warning called)
         assert result is None
@@ -251,12 +278,13 @@ class TestExpenseControllerUpdateExpense:
         mock_repo.get_by_id.return_value = make_expense_response()
         mock_repo.update.side_effect = Exception("DB error")
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
         expense_data = ExpenseUpdate(amount_cents=6000)
 
-        with pytest.raises(Exception):
-            await controller.update_expense(str(ObjectId()), expense_data)
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            with pytest.raises(Exception):
+                await controller.update_expense(str(ObjectId()), expense_data, "test@example.com")
 
 
 class TestExpenseControllerDeleteExpense:
@@ -265,30 +293,34 @@ class TestExpenseControllerDeleteExpense:
     @pytest.mark.asyncio
     async def test_delete_expense_success(self):
         mock_repo = make_async_mock_repo()
+        mock_repo.get_by_id.return_value = make_expense_response()
         mock_repo.delete.return_value = True
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.delete_expense(str(ObjectId()))
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            result = await controller.delete_expense(str(ObjectId()), "test@example.com")
         assert result is True
 
     @pytest.mark.asyncio
     async def test_delete_expense_not_found(self):
         mock_repo = make_async_mock_repo()
-        mock_repo.delete.return_value = False
+        mock_repo.get_by_id.return_value = None
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.delete_expense(str(ObjectId()))
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        result = await controller.delete_expense(str(ObjectId()), "test@example.com")
         assert result is False
 
     @pytest.mark.asyncio
     async def test_delete_expense_raises_on_error(self):
         mock_repo = make_async_mock_repo()
+        mock_repo.get_by_id.return_value = make_expense_response()
         mock_repo.delete.side_effect = Exception("DB error")
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
-        with pytest.raises(Exception):
-            await controller.delete_expense(str(ObjectId()))
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            with pytest.raises(Exception):
+                await controller.delete_expense(str(ObjectId()), "test@example.com")
 
 
 class TestExpenseControllerGetAmountsAndTypes:
@@ -299,8 +331,9 @@ class TestExpenseControllerGetAmountsAndTypes:
         mock_repo = make_async_mock_repo()
         mock_repo.get_amounts_and_types.return_value = []
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.get_amounts_and_types("507f1f77bcf86cd799439012")
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            result = await controller.get_amounts_and_types("507f1f77bcf86cd799439012", "test@example.com")
         assert result == []
 
     @pytest.mark.asyncio
@@ -310,8 +343,9 @@ class TestExpenseControllerGetAmountsAndTypes:
             {"amount_cents": 1000, "type_expense": "cash"},
         ]
 
-        controller = ExpenseController(mock_repo)
-        result = await controller.get_amounts_and_types("507f1f77bcf86cd799439012")
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            result = await controller.get_amounts_and_types("507f1f77bcf86cd799439012", "test@example.com")
         assert len(result) == 1
 
     @pytest.mark.asyncio
@@ -319,7 +353,8 @@ class TestExpenseControllerGetAmountsAndTypes:
         mock_repo = make_async_mock_repo()
         mock_repo.get_amounts_and_types.side_effect = Exception("DB error")
 
-        controller = ExpenseController(mock_repo)
+        controller = ExpenseController(mock_repo, make_async_mock_group_repo(), make_async_mock_user_repo())
 
-        with pytest.raises(Exception):
-            await controller.get_amounts_and_types("507f1f77bcf86cd799439012")
+        with patch.object(controller, "_require_group_membership", new=AsyncMock(return_value=None)):
+            with pytest.raises(Exception):
+                await controller.get_amounts_and_types("507f1f77bcf86cd799439012", "test@example.com")

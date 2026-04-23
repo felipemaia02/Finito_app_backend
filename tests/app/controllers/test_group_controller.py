@@ -20,10 +20,11 @@ def make_user_repo():
     return AsyncMock(spec=IUserRepository)
 
 
-def make_group(user_ids=None):
+def make_group(user_ids=None, creator_id=None):
     return Group(
         id=str(ObjectId()),
         group_name="Grupo Teste",
+        creator_id=creator_id or str(ObjectId()),
         user_ids=user_ids or [],
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
@@ -168,7 +169,11 @@ class TestGroupControllerGetAllGroups:
     async def test_get_all_groups_returns_list(self):
         # Arrange
         groups = [make_group(), make_group()]
-        controller = GroupController(make_group_repo(), make_user_repo())
+        user = make_user()
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = user
+        user_repo.get_by_id.return_value = None
+        controller = GroupController(make_group_repo(), user_repo)
 
         with patch.object(
             controller.get_all_groups_use_case,
@@ -184,7 +189,11 @@ class TestGroupControllerGetAllGroups:
 
     async def test_get_all_groups_empty(self):
         # Arrange
-        controller = GroupController(make_group_repo(), make_user_repo())
+        user = make_user()
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = user
+        user_repo.get_by_id.return_value = None
+        controller = GroupController(make_group_repo(), user_repo)
 
         with patch.object(
             controller.get_all_groups_use_case,
@@ -208,9 +217,9 @@ class TestGroupControllerGetGroupById:
             controller.get_group_by_id_use_case,
             "execute",
             new=AsyncMock(return_value=group),
-        ):
+        ), patch.object(controller, "_require_membership", new=AsyncMock(return_value=None)):
             # Act
-            result = await controller.get_group_by_id(group.id)
+            result = await controller.get_group_by_id(group.id, "test@example.com")
 
         # Assert
         assert isinstance(result, GroupResponse)
@@ -225,7 +234,7 @@ class TestGroupControllerGetGroupById:
             new=AsyncMock(return_value=None),
         ):
             # Act
-            result = await controller.get_group_by_id("nonexistent")
+            result = await controller.get_group_by_id("nonexistent", "test@example.com")
 
         # Assert
         assert result is None
@@ -238,12 +247,16 @@ class TestGroupControllerUpdateGroup:
         controller = GroupController(make_group_repo(), make_user_repo())
 
         with patch.object(
+            controller.get_group_by_id_use_case,
+            "execute",
+            new=AsyncMock(return_value=group),
+        ), patch.object(
             controller.update_group_use_case,
             "execute",
             new=AsyncMock(return_value=group),
-        ):
+        ), patch.object(controller, "_require_membership", new=AsyncMock(return_value=None)):
             # Act
-            result = await controller.update_group(group.id, GroupUpdate(group_name="Novo"))
+            result = await controller.update_group(group.id, GroupUpdate(group_name="Novo"), "test@example.com")
 
         # Assert
         assert isinstance(result, GroupResponse)
@@ -253,12 +266,12 @@ class TestGroupControllerUpdateGroup:
         controller = GroupController(make_group_repo(), make_user_repo())
 
         with patch.object(
-            controller.update_group_use_case,
+            controller.get_group_by_id_use_case,
             "execute",
             new=AsyncMock(return_value=None),
         ):
             # Act
-            result = await controller.update_group("nonexistent", GroupUpdate(group_name="X"))
+            result = await controller.update_group("nonexistent", GroupUpdate(group_name="X"), "test@example.com")
 
         # Assert
         assert result is None
@@ -267,15 +280,23 @@ class TestGroupControllerUpdateGroup:
 class TestGroupControllerDeleteGroup:
     async def test_delete_group_success(self):
         # Arrange
-        controller = GroupController(make_group_repo(), make_user_repo())
+        user = make_user()
+        group = make_group(creator_id=user.id)
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = user
+        controller = GroupController(make_group_repo(), user_repo)
 
         with patch.object(
+            controller.get_group_by_id_use_case,
+            "execute",
+            new=AsyncMock(return_value=group),
+        ), patch.object(
             controller.delete_group_use_case,
             "execute",
             new=AsyncMock(return_value=True),
         ):
             # Act
-            result = await controller.delete_group("group-id")
+            result = await controller.delete_group("group-id", user.email)
 
         # Assert
         assert result is True
@@ -285,12 +306,12 @@ class TestGroupControllerDeleteGroup:
         controller = GroupController(make_group_repo(), make_user_repo())
 
         with patch.object(
-            controller.delete_group_use_case,
+            controller.get_group_by_id_use_case,
             "execute",
-            new=AsyncMock(return_value=False),
+            new=AsyncMock(return_value=None),
         ):
             # Act
-            result = await controller.delete_group("nonexistent")
+            result = await controller.delete_group("nonexistent", "test@example.com")
 
         # Assert
         assert result is False
@@ -305,12 +326,16 @@ class TestGroupControllerAddUser:
         controller = GroupController(make_group_repo(), user_repo)
 
         with patch.object(
+            controller.get_group_by_id_use_case,
+            "execute",
+            new=AsyncMock(return_value=group),
+        ), patch.object(
             controller.add_user_to_group_use_case,
             "execute",
             new=AsyncMock(return_value=group),
-        ):
+        ), patch.object(controller, "_require_membership", new=AsyncMock(return_value=None)):
             # Act
-            result = await controller.add_user_to_group("group-id", "user1")
+            result = await controller.add_user_to_group("group-id", "user1", "test@example.com")
 
         # Assert
         assert isinstance(result, GroupResponse)
@@ -320,12 +345,12 @@ class TestGroupControllerAddUser:
         controller = GroupController(make_group_repo(), make_user_repo())
 
         with patch.object(
-            controller.add_user_to_group_use_case,
+            controller.get_group_by_id_use_case,
             "execute",
             new=AsyncMock(return_value=None),
         ):
             # Act
-            result = await controller.add_user_to_group("nonexistent", "user1")
+            result = await controller.add_user_to_group("nonexistent", "user1", "test@example.com")
 
         # Assert
         assert result is None
@@ -338,12 +363,16 @@ class TestGroupControllerRemoveUser:
         controller = GroupController(make_group_repo(), make_user_repo())
 
         with patch.object(
+            controller.get_group_by_id_use_case,
+            "execute",
+            new=AsyncMock(return_value=group),
+        ), patch.object(
             controller.remove_user_from_group_use_case,
             "execute",
             new=AsyncMock(return_value=group),
-        ):
+        ), patch.object(controller, "_require_membership", new=AsyncMock(return_value=None)):
             # Act
-            result = await controller.remove_user_from_group("group-id", "user1")
+            result = await controller.remove_user_from_group("group-id", "user1", "test@example.com")
 
         # Assert
         assert isinstance(result, GroupResponse)
@@ -353,12 +382,47 @@ class TestGroupControllerRemoveUser:
         controller = GroupController(make_group_repo(), make_user_repo())
 
         with patch.object(
-            controller.remove_user_from_group_use_case,
+            controller.get_group_by_id_use_case,
             "execute",
             new=AsyncMock(return_value=None),
         ):
             # Act
-            result = await controller.remove_user_from_group("nonexistent", "user1")
+            result = await controller.remove_user_from_group("nonexistent", "user1", "test@example.com")
 
         # Assert
         assert result is None
+
+
+class TestGroupControllerGetGroupsByUserEmail:
+    async def test_returns_groups_for_existing_user(self):
+        # Arrange
+        user = make_user()
+        groups = [make_group(user_ids=[user.id]), make_group(user_ids=[user.id])]
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = user
+        user_repo.get_by_id.return_value = None  # no user population in response
+        controller = GroupController(make_group_repo(), user_repo)
+
+        with patch.object(
+            controller.get_groups_by_user_id_use_case,
+            "execute",
+            new=AsyncMock(return_value=groups),
+        ):
+            # Act
+            result = await controller.get_groups_by_user_email("user@example.com")
+
+        # Assert
+        assert len(result) == 2
+        assert all(isinstance(r, GroupResponse) for r in result)
+
+    async def test_returns_empty_list_when_user_not_found(self):
+        # Arrange
+        user_repo = make_user_repo()
+        user_repo.get_by_email.return_value = None
+        controller = GroupController(make_group_repo(), user_repo)
+
+        # Act
+        result = await controller.get_groups_by_user_email("unknown@example.com")
+
+        # Assert
+        assert result == []

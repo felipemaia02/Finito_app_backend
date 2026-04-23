@@ -41,7 +41,7 @@ class RefreshTokenUseCase:
 
             # Create new token pair
             access_token, new_refresh_token, expires_at = (
-                self.oauth_service.create_token_pair(token_data.sub)
+                self.oauth_service.create_token_pair(token_data.sub, user_id=token_data.user_id)
             )
 
             # Calculate expires_in in seconds

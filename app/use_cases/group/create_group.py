@@ -20,6 +20,7 @@ class CreateGroupUseCase(IUseCase[GroupCreate, Group]):
             logger.info(f"Creating group: {group_data.group_name}")
             group = Group(
                 group_name=group_data.group_name,
+                creator_id=creator_user_id,
                 user_ids=[creator_user_id],
             )
             result = await self.repository.create(group)

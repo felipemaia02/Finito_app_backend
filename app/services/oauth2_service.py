@@ -126,24 +126,29 @@ class OAuth2Service:
         logger.debug(f"Refresh token created for subject: {data.get('sub')}")
         return encoded_jwt
 
-    def create_token_pair(self, email: str) -> Tuple[str, str, datetime]:
+    def create_token_pair(self, email: str, user_id: Optional[str] = None) -> Tuple[str, str, datetime]:
         """
         Create both access and refresh tokens.
 
         Args:
             email: User email
+            user_id: User ID to embed in the token payload
 
         Returns:
             Tuple of (access_token, refresh_token, expires_at datetime)
         """
+        payload: dict = {"sub": email}
+        if user_id is not None:
+            payload["user_id"] = user_id
+
         access_token_expires = timedelta(
             hours=self.settings.jwt_access_token_expire_hours
         )
         access_token = self.create_access_token(
-            data={"sub": email}, expires_delta=access_token_expires
+            data=payload, expires_delta=access_token_expires
         )
 
-        refresh_token = self.create_refresh_token(data={"sub": email})
+        refresh_token = self.create_refresh_token(data=payload)
 
         expires_at = datetime.utcnow() + access_token_expires
 
@@ -171,6 +176,7 @@ class OAuth2Service:
             sub: str = payload.get("sub")
             token_type_from_payload: str = payload.get("type", "access")
             exp: int = payload.get("exp")
+            user_id: Optional[str] = payload.get("user_id")
 
             if sub is None:
                 logger.warning("Token missing 'sub' claim")
@@ -189,7 +195,7 @@ class OAuth2Service:
             exp_datetime = datetime.utcfromtimestamp(exp)
             logger.debug(f"Token valid for subject: {sub}, expires at {exp_datetime}")
 
-            token_data = TokenData(sub=sub, exp=exp, type=token_type_from_payload)
+            token_data = TokenData(sub=sub, user_id=user_id, exp=exp, type=token_type_from_payload)
             logger.debug(
                 f"Token verified for subject: {sub} (type: {token_type_from_payload})"
             )

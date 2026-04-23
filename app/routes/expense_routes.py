@@ -10,6 +10,8 @@ from app.infrastructure.dependencies.expense_dependencies import ExpenseDependen
 from app.infrastructure.dependencies.oauth2_dependencies import verify_oauth2_token
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
 from app.models.expense_schema import ExpenseCreate, ExpenseUpdate, ExpenseResponse
+from app.models.auth_schema import TokenData
+from app.models.response_schema import StandardResponse
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -23,29 +25,21 @@ class ExpenseViews:
     """Class-based views for expense operations using fastapi-utils."""
 
     controller: ExpenseController = Depends(ExpenseDependencies.get_controller)
-    current_user: str = Security(verify_oauth2_token)
+    current_user: TokenData = Security(verify_oauth2_token)
     api_key: str = Security(verify_api_key)
 
     @router.post(
         "/expenses",
-        response_model=ExpenseResponse,
+        response_model=StandardResponse,
         status_code=status.HTTP_201_CREATED,
     )
-    async def create_expense(self, expense_data: ExpenseCreate) -> ExpenseResponse:
-        """
-        Create a new expense in a group.
-
-        Args:
-            expense_data: Expense creation data
-
-        Returns:
-            Created expense response with ID
-
-        Raises:
-            HTTPException: If creation fails
-        """
+    async def create_expense(self, expense_data: ExpenseCreate) -> StandardResponse:
+        """Create a new expense in a group (user must be a group member)."""
         try:
-            return await self.controller.create_expense(expense_data)
+            await self.controller.create_expense(expense_data, self.current_user.sub)
+            return StandardResponse(message="Expense created successfully")
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error creating expense: {e}")
             raise HTTPException(
@@ -60,22 +54,11 @@ class ExpenseViews:
         skip: int = 0,
         limit: int = 100,
     ) -> List[ExpenseResponse]:
-        """
-        Get all expenses for a group.
-
-        Args:
-            group_id: ID of the expense group
-            skip: Number of items to skip (pagination)
-            limit: Maximum number of items to return
-
-        Returns:
-            List of expenses from all participants in the group
-
-        Raises:
-            HTTPException: If retrieval fails
-        """
+        """Get all expenses for a group (user must be a group member)."""
         try:
-            return await self.controller.get_all_expenses(group_id, skip, limit)
+            return await self.controller.get_all_expenses(group_id, self.current_user.sub, skip, limit)
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error fetching expenses for group {group_id}: {e}")
             raise HTTPException(
@@ -85,20 +68,9 @@ class ExpenseViews:
 
     @router.get("/expenses/{expense_id}/details", response_model=ExpenseResponse)
     async def get_expense_details(self, expense_id: str) -> ExpenseResponse:
-        """
-        Get a specific expense by ID.
-
-        Args:
-            expense_id: ID of the expense
-
-        Returns:
-            Expense details
-
-        Raises:
-            HTTPException: If expense not found
-        """
+        """Get a specific expense by ID (user must be a member of the expense's group)."""
         try:
-            expense = await self.controller.get_expense_by_id(expense_id)
+            expense = await self.controller.get_expense_by_id(expense_id, self.current_user.sub)
             if not expense:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -107,6 +79,8 @@ class ExpenseViews:
             return expense
         except HTTPException:
             raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error fetching expense {expense_id}: {e}")
             raise HTTPException(
@@ -114,37 +88,27 @@ class ExpenseViews:
                 detail=f"Error fetching expense: {str(e)}",
             )
 
-    @router.patch("/expenses/{expense_id}", response_model=ExpenseResponse)
+    @router.patch("/expenses/{expense_id}", response_model=StandardResponse)
     async def update_expense(
         self,
         expense_id: str,
         expense_data: ExpenseUpdate,
-    ) -> ExpenseResponse:
-        """
-        Update an existing expense (partial update).
-
-        Args:
-            expense_id: ID of the expense to update
-            expense_data: Fields to update
-
-        Returns:
-            Updated expense response
-
-        Raises:
-            HTTPException: If expense not found or update fails
-        """
+    ) -> StandardResponse:
+        """Update an existing expense (user must be a member of the expense's group)."""
         try:
             updated_expense = await self.controller.update_expense(
-                expense_id, expense_data
+                expense_id, expense_data, self.current_user.sub
             )
             if not updated_expense:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Expense {expense_id} not found",
                 )
-            return updated_expense
+            return StandardResponse(message="Expense updated successfully")
         except HTTPException:
             raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error updating expense {expense_id}: {e}")
             raise HTTPException(
@@ -154,17 +118,9 @@ class ExpenseViews:
 
     @router.delete("/expenses/{expense_id}", status_code=status.HTTP_204_NO_CONTENT)
     async def delete_expense(self, expense_id: str) -> None:
-        """
-        Delete (soft delete) an expense.
-
-        Args:
-            expense_id: ID of the expense to delete
-
-        Raises:
-            HTTPException: If expense not found or deletion fails
-        """
+        """Delete an expense (user must be a member of the expense's group)."""
         try:
-            result = await self.controller.delete_expense(expense_id)
+            result = await self.controller.delete_expense(expense_id, self.current_user.sub)
             if not result:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -172,6 +128,8 @@ class ExpenseViews:
                 )
         except HTTPException:
             raise
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error deleting expense {expense_id}: {e}")
             raise HTTPException(
@@ -181,21 +139,11 @@ class ExpenseViews:
 
     @router.get("/expenses/{group_id}/analytics", response_model=List[dict])
     async def get_expense_analytics(self, group_id: str) -> List[dict]:
-        """
-        Get analytics data (amounts and types) for a group.
-        Optimized projection for summary calculations.
-
-        Args:
-            group_id: ID of the expense group
-
-        Returns:
-            List of dictionaries with amount_cents and type_expense
-
-        Raises:
-            HTTPException: If retrieval fails
-        """
+        """Get analytics data (amounts and types) for a group (user must be a member)."""
         try:
-            return await self.controller.get_amounts_and_types(group_id)
+            return await self.controller.get_amounts_and_types(group_id, self.current_user.sub)
+        except PermissionError as pe:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(pe))
         except Exception as e:
             logger.error(f"Error fetching analytics for group {group_id}: {e}")
             raise HTTPException(
