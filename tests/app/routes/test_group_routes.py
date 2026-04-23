@@ -1,12 +1,13 @@
 """Tests for routes/group_routes.py — HTTP endpoint tests."""
 
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from bson import ObjectId
 from fastapi.testclient import TestClient
 
 from app.api import app
 from app.models.group_schema import GroupResponse
+from app.domain.entities.user_entity import User
 
 
 def make_group_response(group_id=None, user_ids=None):
@@ -70,14 +71,27 @@ class TestCreateGroupRoute:
         client, mock_repo, mock_user_repo = group_client
         from app.domain.entities.group_entity import Group
 
+        creator = User(
+            id=str(ObjectId()),
+            name="Test User",
+            email="test@example.com",
+            password="$2b$12$hashed",
+            date_birth=date(1990, 1, 1),
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        mock_user_repo.get_by_email.return_value = creator
+
         group_entity = Group(
             id=str(ObjectId()),
             group_name="Viagem Europa 2026",
-            user_ids=[],
+            user_ids=[creator.id],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         mock_repo.create.return_value = group_entity
+        mock_user_repo.get_by_id.return_value = creator
 
         # Act
         response = client.post("/groups", json={"group_name": "Viagem Europa 2026"})

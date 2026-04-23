@@ -51,8 +51,10 @@ class GroupController:
             updated_at=group.updated_at,
         )
 
-    async def create_group(self, group_data: GroupCreate) -> GroupResponse:
-        group = await self.create_group_use_case.execute(group_data)
+    async def create_group(self, group_data: GroupCreate, creator_email: str) -> GroupResponse:
+        creator = await self.user_repository.get_by_email(creator_email)
+        creator_user_id = creator.id if creator else None
+        group = await self.create_group_use_case.execute(group_data, creator_user_id)
         return await self._build_response(group)
 
     async def get_all_groups(

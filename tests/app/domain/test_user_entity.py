@@ -56,7 +56,7 @@ class TestUserEntity:
 
     def test_user_birth_date_in_future_rejected(self, sample_user_data):
         """Test that future birth date is rejected."""
-        sample_user_data["date_birth"] = date.today()
+        sample_user_data["date_birth"] = datetime.now(timezone.utc).date()
         with pytest.raises(ValueError, match="Birth date must be in the past"):
             User(**sample_user_data)
 
