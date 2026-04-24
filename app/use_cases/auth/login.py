@@ -1,13 +1,13 @@
 """Login use case for user authentication."""
 
+from fastapi import HTTPException, status
+
 from app.models.auth_schema import LoginRequest, TokenResponse
 from app.domain.interfaces.user_repository_interface import IUserRepository
 from app.services.oauth2_service import OAuth2Service
 from app.infrastructure.logger import get_logger
 from datetime import datetime
 from app.use_cases.user.password_utils import verify_password
-
-from fastapi import HTTPException, status
 
 logger = get_logger(__name__)
 
@@ -50,6 +50,14 @@ class LoginUseCase:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid email or password",
+                )
+
+            if not getattr(user, "is_email_verified", True):
+                logger.warning(
+                    f"Login blocked — email not verified for {login_data.email}"
+                )
+                raise ValueError(
+                    "EMAIL_NOT_VERIFIED: Email not verified. Please verify your email before logging in."
                 )
 
             access_token, refresh_token, expires_at = (

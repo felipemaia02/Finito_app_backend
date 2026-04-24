@@ -207,3 +207,51 @@ class OAuth2Service:
         except jwt.InvalidTokenError as e:
             logger.warning(f"Invalid token: {e}")
             return None
+
+    def create_verification_token(self, user_id: str) -> str:
+        """
+        Create a short-lived JWT exclusively for the email verification flow.
+
+        Args:
+            user_id: The ID of the user to embed in the token
+
+        Returns:
+            Encoded JWT with type='email_verification'
+        """
+        expire = datetime.utcnow() + timedelta(
+            minutes=self.settings.jwt_verification_token_expire_minutes
+        )
+        payload = {
+            "user_id": user_id,
+            "type": "email_verification",
+            "exp": expire,
+        }
+        token = jwt.encode(payload, self.settings.secret_key, algorithm=self.algorithm)
+        logger.debug(f"Verification token created for user_id={user_id}")
+        return token
+
+    def verify_verification_token(self, token: str) -> Optional[str]:
+        """
+        Validate an email-verification JWT and return the user_id.
+
+        Args:
+            token: The verification JWT
+
+        Returns:
+            user_id string if valid, None otherwise
+        """
+        try:
+            payload = jwt.decode(
+                token, self.settings.secret_key, algorithms=[self.algorithm]
+            )
+            if payload.get("type") != "email_verification":
+                logger.warning("Token type mismatch — expected email_verification")
+                return None
+            user_id: Optional[str] = payload.get("user_id")
+            return user_id
+        except jwt.ExpiredSignatureError:
+            logger.warning("Verification token has expired")
+            return None
+        except jwt.InvalidTokenError as e:
+            logger.warning(f"Invalid verification token: {e}")
+            return None

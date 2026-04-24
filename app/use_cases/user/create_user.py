@@ -51,7 +51,8 @@ class CreateUserUseCase(IUseCase[UserCreate, UserResponse]):
                 email=user_data.email.lower(),
                 password=hashed_password,
                 date_birth=user_data.date_birth,
-                is_active=True,
+                is_active=False,
+                is_email_verified=False,
             )
 
             created_user = await self.repository.create(user)

@@ -2,20 +2,26 @@
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime, timezone, date
+from datetime import datetime, timezone, date, timedelta
 from bson import ObjectId
 
 from app.domain.entities.expense_entity import Expense
 from app.domain.entities.user_entity import User
 from app.domain.entities.group_entity import Group
+from app.domain.entities.email_verification_token_entity import EmailVerificationToken
 from app.domain.enums.expense_category_enum import ExpenseCategory
 from app.domain.enums.expense_type_enum import ExpenseType
 from app.models.expense_schema import ExpenseCreate, ExpenseUpdate, ExpenseResponse
 from app.models.user_schema import UserCreate, UserUpdate, UserResponse
 from app.models.group_schema import GroupCreate, GroupUpdate, GroupResponse
+from app.models.email_verification_schema import UserRegisterResponse
 from app.domain.interfaces.expense_repository_interface import IExpenseRepository
 from app.domain.interfaces.user_repository_interface import IUserRepository
 from app.domain.interfaces.group_repository_interface import IGroupRepository
+from app.domain.interfaces.email_verification_repository_interface import (
+    IEmailVerificationRepository,
+)
+from app.domain.interfaces.email_service_interface import IEmailService
 
 
 @pytest.fixture
@@ -198,7 +204,7 @@ def mock_database(mocker):
 
 
 @pytest.fixture
-def mock_app_dependencies(mock_user_repository, mock_expense_repository):
+def mock_app_dependencies(mock_user_repository, mock_expense_repository, mock_verification_repository, mock_email_service):
     """Override app dependencies with mocks for testing."""
     from app.api import app
     from app.infrastructure.dependencies.user_dependencies import UserDependencies
@@ -216,12 +222,24 @@ def mock_app_dependencies(mock_user_repository, mock_expense_repository):
     mock_expense_repository.get_all.return_value = []
     mock_expense_repository.delete.return_value = False
 
+    # Default verification repository behavior
+    mock_verification_repository.get_latest_by_user_id.return_value = None
+    mock_verification_repository.invalidate_all_by_user_id.return_value = None
+    mock_verification_repository.create.return_value = None
+    mock_email_service.send_verification_email.return_value = None
+
     # Store original overrides
     original_overrides = app.dependency_overrides.copy()
 
     # Override dependencies
     app.dependency_overrides[UserDependencies.get_repository] = (
         lambda: mock_user_repository
+    )
+    app.dependency_overrides[UserDependencies.get_verification_repository] = (
+        lambda: mock_verification_repository
+    )
+    app.dependency_overrides[UserDependencies.get_email_service] = (
+        lambda: mock_email_service
     )
     app.dependency_overrides[ExpenseDependencies.get_repository] = (
         lambda: mock_expense_repository
@@ -270,3 +288,89 @@ def authenticated_client_with_token(mock_app_dependencies, valid_oauth2_token):
         }
     )
     return client
+
+
+# ---------------------------------------------------------------------------
+# Email Verification fixtures
+# ---------------------------------------------------------------------------
+
+USER_UNVERIFIED_ID = str(ObjectId())
+
+
+@pytest.fixture
+def sample_verification_token_data() -> dict:
+    """Provide sample email verification token data for testing."""
+    import hashlib
+
+    code = "382910"
+    return {
+        "id": str(ObjectId()),
+        "user_id": USER_UNVERIFIED_ID,
+        "code_hash": hashlib.sha256(code.encode()).hexdigest(),
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=15),
+        "is_used": False,
+        "attempts": 0,
+        "resend_count": 0,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+
+
+@pytest.fixture
+def sample_verification_token_entity(
+    sample_verification_token_data,
+) -> EmailVerificationToken:
+    """Provide sample EmailVerificationToken entity for testing."""
+    return EmailVerificationToken(**sample_verification_token_data)
+
+
+@pytest.fixture
+def sample_unverified_user_data() -> dict:
+    """Provide sample unverified user data for testing."""
+    return {
+        "id": USER_UNVERIFIED_ID,
+        "name": "Maria Unverified",
+        "email": "maria@example.com",
+        "password": "$2b$12$abcdefghijklmnopqrstuvwxyz1234567890",
+        "date_birth": date(1995, 8, 20),
+        "is_active": False,
+        "is_email_verified": False,
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
+    }
+
+
+@pytest.fixture
+def sample_unverified_user_entity(sample_unverified_user_data) -> User:
+    """Provide sample unverified User entity for testing."""
+    return User(**sample_unverified_user_data)
+
+
+@pytest.fixture
+def sample_user_register_response() -> UserRegisterResponse:
+    """Provide sample UserRegisterResponse for testing."""
+    return UserRegisterResponse(
+        message="User registered successfully. Check your email for the verification code.",
+        verification_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test",
+    )
+
+
+@pytest.fixture
+def mock_verification_repository() -> AsyncMock:
+    """Provide a mocked email verification repository for testing."""
+    return AsyncMock(spec=IEmailVerificationRepository)
+
+
+@pytest.fixture
+def mock_email_service() -> AsyncMock:
+    """Provide a mocked email service for testing."""
+    return AsyncMock(spec=IEmailService)
+
+
+@pytest.fixture
+def valid_verification_token() -> str:
+    """Provide a valid email verification JWT for testing."""
+    from app.services.oauth2_service import OAuth2Service
+
+    oauth_service = OAuth2Service()
+    return oauth_service.create_verification_token(user_id=USER_UNVERIFIED_ID)

@@ -28,7 +28,8 @@ class User(BaseEntity):
         ..., min_length=6, description="User's password (should be hashed)"
     )
     date_birth: date = Field(..., description="User's birth date")
-    is_active: bool = Field(True, description="Whether the user account is active")
+    is_active: bool = Field(False, description="Whether the user account is active")
+    is_email_verified: bool = Field(False, description="Whether the user's email has been verified")
 
     class Config:
         populate_by_name = True
@@ -39,7 +40,8 @@ class User(BaseEntity):
                 "email": "john@example.com",
                 "password": "hashed_password_hash",
                 "date_birth": "1990-05-15",
-                "is_active": True,
+                "is_active": False,
+                "is_email_verified": False,
                 "created_at": "2026-02-19T12:00:00Z",
                 "updated_at": "2026-02-19T12:00:00Z",
             }

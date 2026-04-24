@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_hours: int = 1
     jwt_refresh_token_expire_days: int = 7
+    jwt_verification_token_expire_minutes: int = 30
+    resend_api_key: str = "re_placeholder_change_in_env"
+    resend_from_email: str = "onboarding@resend.dev"
 
     class Config:
         env_file = ".env"

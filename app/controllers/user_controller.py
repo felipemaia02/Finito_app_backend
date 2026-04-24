@@ -4,13 +4,22 @@ User controller for handling HTTP coordination and delegating to use cases.
 
 from typing import List, Optional
 from app.domain.interfaces.user_repository_interface import IUserRepository
+from app.domain.interfaces.email_verification_repository_interface import (
+    IEmailVerificationRepository,
+)
+from app.domain.interfaces.email_service_interface import IEmailService
 from app.models.user_schema import UserCreate, UserUpdate, UserResponse
+from app.models.email_verification_schema import UserRegisterResponse
 from app.use_cases.user.create_user import CreateUserUseCase
 from app.use_cases.user.get_user_by_id import GetUserByIdUseCase
 from app.use_cases.user.get_all_users import GetAllUsersUseCase
 from app.use_cases.user.get_user_by_email import GetUserByEmailUseCase
 from app.use_cases.user.update_user import UpdateUserUseCase
 from app.use_cases.user.delete_user import DeleteUserUseCase
+from app.use_cases.email_verification.send_verification_email import (
+    SendVerificationEmailUseCase,
+)
+from app.domain.dtos.email_verification_dtos import SendVerificationEmailInput
 from app.infrastructure.logger import get_logger
 from app.domain.dtos.user_dtos import (
     GetAllUsersInput,
@@ -28,17 +37,27 @@ class UserController:
     Acts as a thin HTTP coordination layer.
     """
 
-    def __init__(self, repository: IUserRepository):
+    def __init__(
+        self,
+        repository: IUserRepository,
+        verification_repository: IEmailVerificationRepository,
+        email_service: IEmailService,
+    ):
         """
-        Initialize the controller with a repository dependency.
+        Initialize the controller with repository and email service dependencies.
         Creates use case instances for dependency injection.
 
         Args:
             repository: Implementation of IUserRepository
+            verification_repository: Implementation of IEmailVerificationRepository
+            email_service: Implementation of IEmailService
         """
         logger.info("Initializing UserController")
         self.repository = repository
         self.create_user_use_case = CreateUserUseCase(repository)
+        self.send_verification_use_case = SendVerificationEmailUseCase(
+            verification_repository, email_service
+        )
         self.get_user_by_id_use_case = GetUserByIdUseCase(repository)
         self.get_all_users_use_case = GetAllUsersUseCase(repository)
         self.get_user_by_email_use_case = GetUserByEmailUseCase(repository)
@@ -46,16 +65,16 @@ class UserController:
         self.delete_user_use_case = DeleteUserUseCase(repository)
         logger.info("UserController initialized successfully")
 
-    async def register_user(self, user_data: UserCreate) -> UserResponse:
+    async def register_user(self, user_data: UserCreate) -> UserRegisterResponse:
         """
-        Register a new user in the system.
-        Delegates to CreateUserUseCase.
+        Register a new user and send a verification email.
+        Delegates to CreateUserUseCase + SendVerificationEmailUseCase.
 
         Args:
             user_data: UserCreate schema with user details
 
         Returns:
-            UserResponse with created user
+            UserRegisterResponse with a short-lived verification JWT
 
         Raises:
             ValueError: If email already exists
@@ -63,7 +82,20 @@ class UserController:
         """
         try:
             logger.info(f"Registering new user with email: {user_data.email}")
-            return await self.create_user_use_case.execute(user_data)
+            created = await self.create_user_use_case.execute(user_data)
+            verification_token = await self.send_verification_use_case.execute(
+                SendVerificationEmailInput(
+                    user_id=created.id,
+                    email=str(created.email),
+                )
+            )
+            return UserRegisterResponse(
+                message=(
+                    "User registered successfully. "
+                    "Check your email for the verification code."
+                ),
+                verification_token=verification_token,
+            )
         except Exception as e:
             logger.error(f"Error registering user: {e}")
             raise
