@@ -53,3 +53,31 @@ class IUserRepository(BaseRepository[User]):
             True if email exists, False otherwise
         """
         pass  # pragma: no cover
+
+    @abstractmethod
+    async def get_by_id_unverified(self, id: str) -> Optional[User]:
+        """
+        Get a user by ID regardless of is_active status.
+        Used exclusively in the email verification flow.
+
+        Args:
+            id: User ID
+
+        Returns:
+            User entity if found (active or not), None otherwise
+        """
+        pass  # pragma: no cover
+
+    @abstractmethod
+    async def get_by_email_unverified(self, email: str) -> Optional[User]:
+        """
+        Get a user by email regardless of is_active/is_email_verified status.
+        Used exclusively in the email verification flow.
+
+        Args:
+            email: User's email address
+
+        Returns:
+            User entity if found (active or not), None otherwise
+        """
+        pass  # pragma: no cover

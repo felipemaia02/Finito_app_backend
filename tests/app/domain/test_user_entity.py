@@ -27,7 +27,7 @@ class TestUserEntity:
         )
         assert user.name == "John Doe"
         assert user.email == "john@example.com"
-        assert user.is_active is True
+        assert user.is_active is False
         assert user.id is None  # Not set yet
 
     def test_user_invalid_empty_name(self, sample_user_data):
@@ -105,15 +105,31 @@ class TestUserEntity:
         sample_user_entity.update_timestamp()
         assert sample_user_entity.updated_at > old_timestamp
 
-    def test_user_is_active_default_true(self):
-        """Test that is_active defaults to True."""
+    def test_user_is_active_default_false(self):
+        """Test that is_active defaults to False (account inactive until email verified)."""
         user = User(
             name="Test User",
             email="test@example.com",
             password="password123",
             date_birth=date(1990, 1, 1),
         )
-        assert user.is_active is True
+        assert user.is_active is False
+
+    def test_user_is_email_verified_default_false(self):
+        """Test that is_email_verified defaults to False."""
+        user = User(
+            name="Test User",
+            email="test@example.com",
+            password="password123",
+            date_birth=date(1990, 1, 1),
+        )
+        assert user.is_email_verified is False
+
+    def test_user_is_email_verified_can_be_set_true(self, sample_user_data):
+        """Test that is_email_verified can be set to True."""
+        sample_user_data["is_email_verified"] = True
+        user = User(**sample_user_data)
+        assert user.is_email_verified is True
 
     def test_user_birth_date_accepts_iso_string(self):
         """Test that date_birth validator parses ISO string."""

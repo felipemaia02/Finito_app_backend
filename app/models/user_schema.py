@@ -52,7 +52,8 @@ class UserResponse(BaseModel):
     name: str = Field(..., description="User's full name")
     email: str = Field(..., description="User's email address")
     date_birth: date = Field(..., description="User's birth date")
-    is_active: bool = Field(True, description="Whether the user account is active")
+    is_active: bool = Field(False, description="Whether the user account is active")
+    is_email_verified: bool = Field(False, description="Whether the user's email has been verified")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
@@ -79,7 +80,8 @@ class UserResponseWithoutPassword(BaseModel):
     name: str = Field(..., description="User's full name")
     email: str = Field(..., description="User's email address")
     date_birth: date = Field(..., description="User's birth date")
-    is_active: bool = Field(True, description="Whether the user account is active")
+    is_active: bool = Field(False, description="Whether the user account is active")
+    is_email_verified: bool = Field(False, description="Whether the user's email has been verified")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 

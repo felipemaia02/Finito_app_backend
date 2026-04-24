@@ -26,6 +26,7 @@ class TestLoginUseCase:
             password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyB2x8z9RZMK",  # hashed "password123"
             date_birth=date(1990, 5, 15),
             is_active=True,
+            is_email_verified=True,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -105,6 +106,7 @@ class TestLoginUseCase:
             password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyB2x8z9RZMK",
             date_birth=date(1990, 5, 15),
             is_active=True,
+            is_email_verified=True,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -146,6 +148,7 @@ class TestLoginUseCase:
             password="hashed",
             date_birth=date(1990, 5, 15),
             is_active=True,
+            is_email_verified=True,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -162,3 +165,28 @@ class TestLoginUseCase:
             ):
                 with pytest.raises(ValueError, match="token error"):
                     await use_case.execute(login_data)
+
+    @pytest.mark.asyncio
+    async def test_login_email_not_verified_raises_value_error(self, mock_user_repository):
+        """Test that login is blocked when email is not verified."""
+        # Arrange
+        login_data = LoginRequest(email="john@example.com", password="password123")
+
+        user = User(
+            id="507f1f77bcf86cd799439011",
+            name="John Silva",
+            email="john@example.com",
+            password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyB2x8z9RZMK",
+            date_birth=date(1990, 5, 15),
+            is_active=False,
+            is_email_verified=False,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        mock_user_repository.get_by_email.return_value = user
+        use_case = LoginUseCase(mock_user_repository)
+
+        # Act & Assert
+        with patch("app.use_cases.auth.login.verify_password", return_value=True):
+            with pytest.raises(ValueError, match="EMAIL_NOT_VERIFIED"):
+                await use_case.execute(login_data)

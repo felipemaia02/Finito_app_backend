@@ -129,6 +129,22 @@ class MongoUserRepository(IUserRepository):
             logger.error(f"Error retrieving user by ID {id}: {e}")
             raise
 
+    async def get_by_id_unverified(self, id: str) -> Optional[User]:
+        """Get a user by ID regardless of is_active (used in email verification)."""
+        try:
+            collection = self._get_collection()
+            doc = await collection.find_one({"_id": ObjectId(id)})
+
+            if doc:
+                logger.info(f"Retrieved unverified user with ID: {id}")
+                return self._document_to_entity(doc)
+
+            logger.warning(f"User not found with ID: {id}")
+            return None
+        except Exception as e:
+            logger.error(f"Error retrieving user by ID {id}: {e}")
+            raise
+
     async def get_all(self, skip: int = 0, limit: int = 100) -> List[User]:
         """
         Get all active users with pagination.
@@ -175,6 +191,22 @@ class MongoUserRepository(IUserRepository):
 
             if doc:
                 logger.info(f"Retrieved user with email: {email}")
+                return self._document_to_entity(doc)
+
+            logger.warning(f"User not found with email: {email}")
+            return None
+        except Exception as e:
+            logger.error(f"Error retrieving user by email {email}: {e}")
+            raise
+
+    async def get_by_email_unverified(self, email: str) -> Optional[User]:
+        """Get a user by email regardless of is_active (used in email verification)."""
+        try:
+            collection = self._get_collection()
+            doc = await collection.find_one({"email": email})
+
+            if doc:
+                logger.info(f"Retrieved unverified user with email: {email}")
                 return self._document_to_entity(doc)
 
             logger.warning(f"User not found with email: {email}")

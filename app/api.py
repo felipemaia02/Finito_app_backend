@@ -15,6 +15,7 @@ from app.routes.user_private_routes import router as user_private_router
 from app.routes.user_public_routes import router as user_public_router
 from app.routes.auth_routes import router as auth_router
 from app.routes.health_routes import router as health_router
+from app.routes.email_verification_routes import router as email_verification_router
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -59,6 +60,7 @@ app.include_router(group_router, prefix=settings.api_v1_str)
 app.include_router(user_public_router, prefix=settings.api_v1_str)
 app.include_router(user_private_router, prefix=settings.api_v1_str)
 app.include_router(auth_router, prefix=settings.api_v1_str)
+app.include_router(email_verification_router, prefix=settings.api_v1_str)
 app.include_router(health_router, prefix=settings.api_v1_str)
 
 

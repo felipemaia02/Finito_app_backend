@@ -53,9 +53,15 @@ class AuthViews:
         try:
             return await self.controller.login(login_data)
         except ValueError as ve:
+            error_msg = str(ve)
+            if error_msg.startswith("EMAIL_NOT_VERIFIED:"):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=error_msg.removeprefix("EMAIL_NOT_VERIFIED: "),
+                )
             logger.error(f"Login validation error: {ve}")
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail=str(ve)
+                status_code=status.HTTP_401_UNAUTHORIZED, detail=error_msg
             )
         except Exception as e:
             logger.error(f"Error logging in: {e}")

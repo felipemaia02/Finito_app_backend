@@ -8,7 +8,7 @@ from app.controllers.user_controller import UserController
 from app.infrastructure.dependencies.user_dependencies import UserDependencies
 from app.infrastructure.dependencies.auth_dependencies import verify_api_key
 from app.models.user_schema import UserCreate
-from app.models.response_schema import StandardResponse
+from app.models.email_verification_schema import UserRegisterResponse
 from app.infrastructure.logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,14 +26,13 @@ class UserPublicViews:
 
     @router.post(
         "/register",
-        response_model=StandardResponse,
+        response_model=UserRegisterResponse,
         status_code=status.HTTP_201_CREATED,
     )
-    async def register_user(self, user_data: UserCreate) -> StandardResponse:
+    async def register_user(self, user_data: UserCreate) -> UserRegisterResponse:
         """Register a new user in the system."""
         try:
-            await self.controller.register_user(user_data)
-            return StandardResponse(message="User registered successfully")
+            return await self.controller.register_user(user_data)
         except ValueError as ve:
             logger.error(f"Validation error registering user: {ve}")
             raise HTTPException(
