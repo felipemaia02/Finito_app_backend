@@ -1,6 +1,6 @@
 """OAuth2 authentication service with JWT token generation and validation."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
 import jwt
 import bcrypt
@@ -78,9 +78,9 @@ class OAuth2Service:
         to_encode["type"] = "access"
 
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(
+            expire = datetime.now(timezone.utc) + timedelta(
                 hours=self.settings.jwt_access_token_expire_hours
             )
 
@@ -110,10 +110,10 @@ class OAuth2Service:
         to_encode["type"] = "refresh"
 
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = datetime.now(timezone.utc) + expires_delta
         else:
             # Default to configured refresh days
-            expire = datetime.utcnow() + timedelta(
+            expire = datetime.now(timezone.utc) + timedelta(
                 days=self.settings.jwt_refresh_token_expire_days
             )
 
@@ -150,7 +150,7 @@ class OAuth2Service:
 
         refresh_token = self.create_refresh_token(data=payload)
 
-        expires_at = datetime.utcnow() + access_token_expires
+        expires_at = datetime.now(timezone.utc) + access_token_expires
 
         return access_token, refresh_token, expires_at
 
@@ -218,7 +218,7 @@ class OAuth2Service:
         Returns:
             Encoded JWT with type='email_verification'
         """
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(timezone.utc) + timedelta(
             minutes=self.settings.jwt_verification_token_expire_minutes
         )
         payload = {
