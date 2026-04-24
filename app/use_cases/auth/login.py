@@ -6,7 +6,7 @@ from app.models.auth_schema import LoginRequest, TokenResponse
 from app.domain.interfaces.user_repository_interface import IUserRepository
 from app.services.oauth2_service import OAuth2Service
 from app.infrastructure.logger import get_logger
-from datetime import datetime
+from datetime import datetime, timezone
 from app.use_cases.user.password_utils import verify_password
 
 logger = get_logger(__name__)
@@ -64,7 +64,7 @@ class LoginUseCase:
                 self.oauth_service.create_token_pair(user.email, user_id=user.id)
             )
 
-            expires_in = int((expires_at - datetime.utcnow()).total_seconds())
+            expires_in = int((expires_at - datetime.now(timezone.utc)).total_seconds())
 
             logger.info(f"Login successful for email: {login_data.email}")
             return TokenResponse(

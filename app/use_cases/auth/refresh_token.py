@@ -3,7 +3,7 @@
 from app.models.auth_schema import TokenResponse
 from app.services.oauth2_service import OAuth2Service
 from app.infrastructure.logger import get_logger
-from datetime import datetime
+from datetime import datetime, timezone
 
 logger = get_logger(__name__)
 
@@ -45,7 +45,7 @@ class RefreshTokenUseCase:
             )
 
             # Calculate expires_in in seconds
-            expires_in = int((expires_at - datetime.utcnow()).total_seconds())
+            expires_in = int((expires_at - datetime.now(timezone.utc)).total_seconds())
 
             logger.info(f"Token refreshed successfully for email: {token_data.sub}")
             return TokenResponse(

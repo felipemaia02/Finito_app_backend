@@ -23,7 +23,7 @@ class TestRefreshTokenUseCase:
         use_case = RefreshTokenUseCase()
 
         # Use naive datetime and int timestamp as expected by TokenData
-        expires_at = datetime.utcnow() + timedelta(hours=1)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=1)
         exp_timestamp = int(expires_at.timestamp())
         token_data = TokenData(sub="test@example.com", exp=exp_timestamp)
         access_token = "new_access_token"
@@ -84,7 +84,7 @@ class TestRefreshTokenUseCase:
         use_case = RefreshTokenUseCase()
 
         # Use naive datetime and int timestamp as expected by TokenData
-        expires_at = datetime.utcnow() + timedelta(hours=2)
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=2)
         exp_timestamp = int(expires_at.timestamp())
         token_data = TokenData(sub="user@example.com", exp=exp_timestamp)
 
