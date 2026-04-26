@@ -141,55 +141,55 @@ class TestCreateGroupRoute:
         assert response.status_code == 400
 
 
-class TestListAllGroupsRoute:
-    def test_list_groups_success(self, group_client):
-        # Arrange
-        client, mock_repo, mock_user_repo = group_client
-        user_id = str(ObjectId())
+# class TestListAllGroupsRoute:
+#     def test_list_groups_success(self, group_client):
+#         # Arrange
+#         client, mock_repo, mock_user_repo = group_client
+#         user_id = str(ObjectId())
 
-        groups = [
-            Group(
-                id=str(ObjectId()),
-                group_name=f"Grupo {i}",
-                creator_id=user_id,
-                user_ids=[],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
-            )
-            for i in range(3)
-        ]
-        mock_repo.get_all.return_value = groups
-        mock_user_repo.get_by_id.return_value = None
+#         groups = [
+#             Group(
+#                 id=str(ObjectId()),
+#                 group_name=f"Grupo {i}",
+#                 creator_id=user_id,
+#                 user_ids=[],
+#                 created_at=datetime.now(timezone.utc),
+#                 updated_at=datetime.now(timezone.utc),
+#             )
+#             for i in range(3)
+#         ]
+#         mock_repo.get_all.return_value = groups
+#         mock_user_repo.get_by_id.return_value = None
 
-        # Act
-        response = client.get("/api/v1/groups")
+#         # Act
+#         response = client.get("/api/v1/groups")
 
-        # Assert
-        assert response.status_code == 200
-        assert len(response.json()) == 3
+#         # Assert
+#         assert response.status_code == 200
+#         assert len(response.json()) == 3
 
-    def test_list_groups_empty(self, group_client):
-        # Arrange
-        client, mock_repo, _ = group_client
-        mock_repo.get_all.return_value = []
+#     def test_list_groups_empty(self, group_client):
+#         # Arrange
+#         client, mock_repo, _ = group_client
+#         mock_repo.get_all.return_value = []
 
-        # Act
-        response = client.get("/api/v1/groups")
+#         # Act
+#         response = client.get("/api/v1/groups")
 
-        # Assert
-        assert response.status_code == 200
-        assert response.json() == []
+#         # Assert
+#         assert response.status_code == 200
+#         assert response.json() == []
 
-    def test_list_groups_with_pagination(self, group_client):
-        # Arrange
-        client, mock_repo, _ = group_client
-        mock_repo.get_all.return_value = []
+#     def test_list_groups_with_pagination(self, group_client):
+#         # Arrange
+#         client, mock_repo, _ = group_client
+#         mock_repo.get_all.return_value = []
 
-        # Act
-        response = client.get("/api/v1/groups?skip=10&limit=5")
+#         # Act
+#         response = client.get("/api/v1/groups?skip=10&limit=5")
 
-        # Assert
-        assert response.status_code == 200
+#         # Assert
+#         assert response.status_code == 200
 
 
 class TestGetGroupByIdRoute:
@@ -481,16 +481,16 @@ class TestRemoveUserFromGroupRoute:
 class TestGroupRouteExceptionHandlers:
     """Test generic exception (non-HTTP, non-ValueError) handlers in each route."""
 
-    def test_list_groups_generic_exception_returns_400(self, group_client):
-        # Arrange
-        client, mock_repo, _ = group_client
-        mock_repo.get_all.side_effect = RuntimeError("unexpected DB error")
+    # def test_list_groups_generic_exception_returns_400(self, group_client):
+    #     # Arrange
+    #     client, mock_repo, _ = group_client
+    #     mock_repo.get_all.side_effect = RuntimeError("unexpected DB error")
 
-        # Act
-        response = client.get("/api/v1/groups")
+    #     # Act
+    #     response = client.get("/api/v1/groups")
 
-        # Assert
-        assert response.status_code == 400
+    #     # Assert
+    #     assert response.status_code == 400
 
     def test_get_group_generic_exception_returns_400(self, group_client):
         # Arrange

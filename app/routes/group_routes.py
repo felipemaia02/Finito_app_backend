@@ -45,18 +45,6 @@ class GroupViews:
                 detail=f"Error creating group: {str(e)}",
             )
 
-    @router.get("/groups", response_model=List[GroupResponse])
-    async def list_groups(self, skip: int = 0, limit: int = 100) -> List[GroupResponse]:
-        """List all groups."""
-        try:
-            return await self.controller.get_all_groups(skip=skip, limit=limit)
-        except Exception as e:
-            logger.error(f"Error listing groups: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error listing groups: {str(e)}",
-            )
-
     @router.get("/groups/me", response_model=List[GroupResponse])
     async def get_my_groups(self) -> List[GroupResponse]:
         """Get all groups the authenticated user belongs to."""

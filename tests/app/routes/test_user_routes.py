@@ -153,35 +153,35 @@ class TestUserRoutes:
         # Assert
         assert response.status_code == 422  # Validation error
 
-    def test_get_all_users_success(self, client, valid_oauth2_token):
-        """Test getting all users endpoint."""
-        # Arrange
-        headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
+    # def test_get_all_users_success(self, client, valid_oauth2_token):
+    #     """Test getting all users endpoint."""
+    #     # Arrange
+    #     headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
 
-        # Act
-        response = client.get("/api/v1/users?skip=0&limit=100", headers=headers)
+    #     # Act
+    #     response = client.get("/api/v1/users?skip=0&limit=100", headers=headers)
 
-        # Debug
-        print(f"\nGet all users test - Status: {response.status_code}")
-        if response.status_code != 200:
-            print(f"Response: {response.json()}")
+    #     # Debug
+    #     print(f"\nGet all users test - Status: {response.status_code}")
+    #     if response.status_code != 200:
+    #         print(f"Response: {response.json()}")
 
-        # Assert
-        # The response should be a list (may be empty in test environment)
-        assert response.status_code in [200, 422]
-        if response.status_code == 200:
-            assert isinstance(response.json(), list)
+    #     # Assert
+    #     # The response should be a list (may be empty in test environment)
+    #     assert response.status_code in [200, 422]
+    #     if response.status_code == 200:
+    #         assert isinstance(response.json(), list)
 
-    def test_get_all_users_with_pagination(self, client, valid_oauth2_token):
-        """Test pagination parameters."""
-        # Arrange
-        headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
+    # def test_get_all_users_with_pagination(self, client, valid_oauth2_token):
+    #     """Test pagination parameters."""
+    #     # Arrange
+    #     headers = {"Authorization": f"Bearer {valid_oauth2_token}"}
 
-        # Act
-        response = client.get("/api/v1/users?skip=10&limit=50", headers=headers)
+    #     # Act
+    #     response = client.get("/api/v1/users?skip=10&limit=50", headers=headers)
 
-        # Assert
-        assert response.status_code in [200, 422]
+    #     # Assert
+    #     assert response.status_code in [200, 422]
 
     def test_get_user_by_id_not_found(self, client, valid_oauth2_token):
         """Test getting user by invalid ID."""

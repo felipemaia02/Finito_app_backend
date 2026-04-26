@@ -59,48 +59,48 @@ def user_private_client(mock_app_dependencies, mock_user_repository):
     return client, mock_user_repository
 
 
-class TestUserPrivateGetAllUsers:
-    """Test GET /users/ endpoint."""
+# class TestUserPrivateGetAllUsers:
+#     """Test GET /users/ endpoint."""
 
-    def test_get_all_users_empty(self, user_private_client):
-        client, mock_repo = user_private_client
-        mock_repo.get_all.return_value = []
+#     def test_get_all_users_empty(self, user_private_client):
+#         client, mock_repo = user_private_client
+#         mock_repo.get_all.return_value = []
 
-        response = client.get("/api/v1/users/")
-        assert response.status_code == 200
-        assert response.json() == []
+#         response = client.get("/api/v1/users/")
+#         assert response.status_code == 200
+#         assert response.json() == []
 
-    def test_get_all_users_with_results(self, user_private_client):
-        client, mock_repo = user_private_client
-        user = make_user_response_obj()
-        mock_repo.get_all.return_value = [user]
+#     def test_get_all_users_with_results(self, user_private_client):
+#         client, mock_repo = user_private_client
+#         user = make_user_response_obj()
+#         mock_repo.get_all.return_value = [user]
 
-        response = client.get("/api/v1/users/")
-        assert response.status_code == 200
-        assert len(response.json()) == 1
+#         response = client.get("/api/v1/users/")
+#         assert response.status_code == 200
+#         assert len(response.json()) == 1
 
-    def test_get_all_users_with_pagination(self, user_private_client):
-        client, mock_repo = user_private_client
-        mock_repo.get_all.return_value = []
+#     def test_get_all_users_with_pagination(self, user_private_client):
+#         client, mock_repo = user_private_client
+#         mock_repo.get_all.return_value = []
 
-        response = client.get("/api/v1/users/?skip=5&limit=20")
-        assert response.status_code == 200
+#         response = client.get("/api/v1/users/?skip=5&limit=20")
+#         assert response.status_code == 200
 
-    def test_get_all_users_server_error(self, user_private_client):
-        client, mock_repo = user_private_client
-        mock_repo.get_all.side_effect = Exception("DB error")
+#     def test_get_all_users_server_error(self, user_private_client):
+#         client, mock_repo = user_private_client
+#         mock_repo.get_all.side_effect = Exception("DB error")
 
-        response = client.get("/api/v1/users/")
-        assert response.status_code == 400
+#         response = client.get("/api/v1/users/")
+#         assert response.status_code == 400
 
-    def test_get_all_users_requires_auth(self, mock_app_dependencies):
-        from app.infrastructure.settings import get_settings
+#     def test_get_all_users_requires_auth(self, mock_app_dependencies):
+#         from app.infrastructure.settings import get_settings
 
-        client = TestClient(mock_app_dependencies)
-        client.headers.update({"X-API-Key": get_settings().api_key})
+#         client = TestClient(mock_app_dependencies)
+#         client.headers.update({"X-API-Key": get_settings().api_key})
 
-        response = client.get("/api/v1/users/")
-        assert response.status_code in [401, 403, 422]
+#         response = client.get("/api/v1/users/")
+#         assert response.status_code in [401, 403, 422]
 
 
 class TestUserPrivateGetUser:

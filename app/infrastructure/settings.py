@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     jwt_verification_token_expire_minutes: int = 30
     resend_api_key: str = "re_placeholder_change_in_env"
     resend_from_email: str = "onboarding@resend.dev"
+    cors_origins: list[str] = ["*"]
 
     class Config:
         env_file = ".env"

@@ -28,22 +28,6 @@ class UserPrivateViews:
     api_key: str = Security(verify_api_key)
 
     @router.get(
-        "/",
-        response_model=List[UserResponse],
-        status_code=status.HTTP_200_OK,
-    )
-    async def list_users(self, skip: int = 0, limit: int = 100) -> List[UserResponse]:
-        """List all users with pagination."""
-        try:
-            return await self.controller.get_all_users(skip=skip, limit=limit)
-        except Exception as e:
-            logger.error(f"Error listing users: {e}")
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Error listing users: {str(e)}",
-            )
-
-    @router.get(
         "/email/{email}",
         response_model=UserPublicInfo,
         status_code=status.HTTP_200_OK,
